@@ -15,26 +15,37 @@ BusStop::BusStop(int id){
  * Returns the waiting time for the bus
  *
  * @param p The number of the bus to wait (0 = most recent)
- * @param real 1 if real wait time. 0 otherwise.
  *
  * @return The waiting time in minutes. -1 if error occurred.
  */
-int BusStop::BSTOP_getWaitTime(int p, int real){
+int BusStop::BSTOP_getWaitTime(int p){
 
+	// Prevent index out of bounds
 	if( p >= WAITTIMES_N )
 		return -1;
 
-	time_t endTime;
-	tm originTime = INET_getCurrentTimeDate();
+	// Get current time and bus time
+	tm now = INET_getCurrentTimeDate();
+	tm busTime = BSTOP_sTime[p];
 
-	if( real == 1 )
-		endTime = mktime(&BSTOP_sTime[p].realTime);
-	else if( real == 0 )
-		endTime = mktime(&BSTOP_sTime[p].schedTime);
+	// If real bus time is not available, return -1
+	if( busTime.tm_hour == -1 || busTime.tm_min == -1 )
+		return -1;
 
-	double diff = difftime(endTime, mktime(&originTime));
+	// Get differences of hour and minutes
+	int hourWait = busTime.tm_hour - now.tm_hour;
+	int minWait = busTime.tm_min - now.tm_min;
 
-	return (int)(diff/60);
+	// Adjust the hour wait if the result is negative
+	while( hourWait < 0 ){
+		hourWait += 24;
+	}
+
+	// Adjust the minutes wait if the result is negative
+	minWait += hourWait*60;
+
+	return minWait;
+
 }
 
 /*
@@ -45,30 +56,15 @@ void BusStop::BSTOP_setSTime(string st, int p){
 	if( p >= WAITTIMES_N )
 		return;
 
-	// Get current date and erase time
-	tm date = INET_getCurrentTimeDate();
-	date.tm_hour = 0;
-	date.tm_min = 0;
-
-	// Assign the date to the stop time
-	BSTOP_sTime[p].schedTime = date;
-	BSTOP_sTime[p].realTime = date;
-
-	// Get Scheduled time
-	BSTOP_sTime[p].schedTime.tm_hour = atoi(st.substr(0,2).c_str());
-	BSTOP_sTime[p].schedTime.tm_min = atoi(st.substr(3,2).c_str());
-	if( st[5] == 'p' ) BSTOP_sTime[p].schedTime.tm_hour += 12;
-	if( BSTOP_sTime[p].schedTime.tm_hour == 0 ) BSTOP_sTime[p].schedTime.tm_mday += 1;
-
 	// Get Real time
-	BSTOP_sTime[p].realTime.tm_hour = atoi(st.substr(10,2).c_str());
-	BSTOP_sTime[p].realTime.tm_min = atoi(st.substr(13,2).c_str());
-	if( st[15] == 'p' ) BSTOP_sTime[p].realTime.tm_hour += 12;
-	if( BSTOP_sTime[p].realTime.tm_hour == 0 ) BSTOP_sTime[p].realTime.tm_mday += 1;
+	BSTOP_sTime[p].tm_hour = atoi(st.substr(10,2).c_str());
+	BSTOP_sTime[p].tm_min = atoi(st.substr(13,2).c_str());
+	if( st[15] == 'p' && BSTOP_sTime[p].tm_hour != 12 ) BSTOP_sTime[p].tm_hour += 12;
+	if( BSTOP_sTime[p].tm_hour == 0 ) BSTOP_sTime[p].tm_mday += 1;
 
 	// Give format
-	mktime(&BSTOP_sTime[p].schedTime);
-	mktime(&BSTOP_sTime[p].realTime);
+	mktime(&BSTOP_sTime[p]);
+	mktime(&BSTOP_sTime[p]);
 }
 
 /*
@@ -77,9 +73,7 @@ void BusStop::BSTOP_setSTime(string st, int p){
 void BusStop::BSTOP_setEmptyTime(){
 
 	for( int i=0 ; i<WAITTIMES_N ; i++ ){
-		BSTOP_sTime[i].realTime.tm_hour = -1;
-		BSTOP_sTime[i].realTime.tm_min = -1;
-		BSTOP_sTime[i].schedTime.tm_hour = -1;
-		BSTOP_sTime[i].schedTime.tm_min = -1;
+		BSTOP_sTime[i].tm_hour = -1;
+		BSTOP_sTime[i].tm_min = -1;
 	}
 }

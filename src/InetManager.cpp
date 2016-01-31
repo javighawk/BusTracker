@@ -40,9 +40,12 @@ string webURL = "transitego.saskatoon.ca";
 tm currentTimeDate;
 
 /*
- * Bus stop ID
+ * Bus stop IDs
  */
 const string farmersMarket_DT_ID = "5755";
+const string farmersMarket_RD_ID = "5758";
+const string avenueC20th_DT_ID = "3088";
+const string avenueC20th_PH_ID = "3083";
 
 extern void SC_retrieveData(string sourcecode, BusStop *bStop, tm *currentTimeDate);
 
@@ -168,8 +171,11 @@ tm INET_getCurrentTimeDate(){
  */
 int main(){
 
-	// Create Farmer's Market bus stop (Direction downtown)
+	// Create bus stops
 	BusStop farmersMarket_DT = BusStop(atoi(farmersMarket_DT_ID.c_str()));
+	BusStop farmersMarket_RD = BusStop(atoi(farmersMarket_DT_ID.c_str()));
+	BusStop avenueC20th_DT = BusStop(atoi(avenueC20th_DT_ID.c_str()));
+	BusStop avenueC20th_PH = BusStop(atoi(avenueC20th_PH_ID.c_str()));
 
 	// Get the IP from the URL
 	string IP = INET_getIPFromDomain(webURL);
@@ -179,7 +185,7 @@ int main(){
 		// Open the socket
 		if( INET_initSocket( IP ) != 0 ){
 			// Need to implement timeout case
-			return 1;
+			continue;
 		}
 
 		// Get the content of the website
@@ -194,27 +200,22 @@ int main(){
 
 
 		// Testing: Print data
-		StopTime t1 = farmersMarket_DT.BSTOP_getSTime(0);
-		StopTime t2 = farmersMarket_DT.BSTOP_getSTime(1);
-		StopTime t3 = farmersMarket_DT.BSTOP_getSTime(2);
-
-		tm realTimes[3] = {t1.realTime, t2.realTime, t3.realTime};
-		tm schedTimes[3] = {t1.schedTime, t2.schedTime, t3.schedTime};
+		tm realTimes[3];
+		realTimes[0] = farmersMarket_DT.BSTOP_getSTime(0);
+		realTimes[1] = farmersMarket_DT.BSTOP_getSTime(1);
+		realTimes[2] = farmersMarket_DT.BSTOP_getSTime(2);
 
 		printf("Now: %d/%d/%d , %d:%d\n", currentTimeDate.tm_mon, currentTimeDate.tm_mday, currentTimeDate.tm_year, currentTimeDate.tm_hour, currentTimeDate.tm_min);
 		printf("Real times: ");
 		for( int i=0 ; i<3 ; i++ ){
 			if( realTimes[i].tm_hour == -1 )
-						break;
+				break;
 			printf("%d:%d  ", realTimes[i].tm_hour, realTimes[i].tm_min);
 		}
 		printf("\n");
-
-		printf("Schd times: ");
+		printf("Wait times: ");
 		for( int i=0 ; i<3 ; i++ ){
-			if( schedTimes[i].tm_hour == -1 )
-				break;
-			printf("%d:%d  ", schedTimes[i].tm_hour, schedTimes[i].tm_min);
+			printf("%dmin  ", farmersMarket_DT.BSTOP_getWaitTime(i));
 		}
 		printf("\n\n");
 

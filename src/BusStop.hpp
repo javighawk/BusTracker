@@ -6,24 +6,19 @@
 
 #define WAITTIMES_N		3
 
-typedef struct{
-	tm schedTime;
-	tm realTime;
-} StopTime;
-
 using namespace std;
 
 class BusStop{
 public:
 	BusStop(int id);
-	int BSTOP_getWaitTime(int p, int real);
+	int BSTOP_getWaitTime(int p);
 	void BSTOP_setSTime(string st, int p);
 	void BSTOP_setEmptyTime();
 	int BSTOP_getId(){ return BSTOP_id; }
-		StopTime BSTOP_getSTime(int p){ return BSTOP_sTime[p]; }
+	tm BSTOP_getSTime(int p){ return BSTOP_sTime[p]; }
 private:
 	int BSTOP_id;
-	StopTime BSTOP_sTime[WAITTIMES_N];
+	tm BSTOP_sTime[WAITTIMES_N];
 };
 
 #endif
