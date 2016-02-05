@@ -7,27 +7,22 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include "BusStop.hpp"
+#include "GPIO.hpp"
 
-#define CONNECT_PERIOD_SEC	60
+#define CONNECT_PERIOD_SEC	10
 
-/*
- * On board LED blink C++ example
- *
- * Demonstrate how to blink the on board LED, writing a digital value to an
- * output pin using the MRAA library.
- * No external hardware is needed.
- *
- * - digital out: on board LED
- *
- * Additional linker flags: none
- */
 
 using namespace std;
 
 /*
  * Descriptor of the socket we will use to communicate with the server
  */
-int socket_desc;
+int socket_desc_client;
+
+/*
+ * Descriptor of the socket that will act as server
+ */
+int socket_desc_server;
 
 /*
  * Website to which we connect
@@ -62,8 +57,8 @@ int INET_initSocket(string ip){
     struct sockaddr_in server;
 
     //Create socket
-    socket_desc = socket(AF_INET , SOCK_STREAM , 0);
-    if (socket_desc == -1)
+    socket_desc_client = socket(AF_INET , SOCK_STREAM , 0);
+    if (socket_desc_client == -1)
     {
         printf("Could not create socket");
     }
@@ -74,14 +69,48 @@ int INET_initSocket(string ip){
     server.sin_port = htons( 80 );
 
     //Connect to remote server
-    if (connect(socket_desc , (struct sockaddr *)&server , sizeof(server)) < 0)
+    if (connect(socket_desc_client , (struct sockaddr *)&server , sizeof(server)) < 0)
     {
     	// Need to implement timeout
         printf("connect error");
         return 1;
     }
 
-    //printf("Connected\n");
+    return 0;
+}
+
+
+/*
+ * Initializes socket to hear from clients
+ *
+ * @param port Port to which we will bind the socket
+ *
+ * @return 0 if correct initialization. 1 otherwise.
+ */
+int INET_initServer(int port){
+
+    struct sockaddr_in server;
+
+    //Create socket
+    socket_desc_server = socket(AF_INET , SOCK_STREAM , 0);
+    if (socket_desc_server == -1)
+    {
+        printf("Could not create socket");
+    }
+
+    // Configure sockaddr struct
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_family = AF_INET;
+    server.sin_port = htons( 8888 );
+
+    //Connect to remote server
+    if ( bind(socket_desc_server, (struct sockaddr *)&server, sizeof(server)) < 0)
+    {
+    	// Need to implement timeout
+        printf("bind failed");
+        return 1;
+    }
+
     return 0;
 }
 
@@ -134,7 +163,7 @@ string INET_getWebsite(string stop_id){
     message += "Host: " + webURL + "\r\nConnection: close\r\n\r\n";
 
     // Send the request to the server
-    if( send(socket_desc , message.c_str() , message.length() , 0) < 0)
+    if( send(socket_desc_client , message.c_str() , message.length() , 0) < 0)
     {
         printf("Send failed");
         return string();
@@ -143,7 +172,7 @@ string INET_getWebsite(string stop_id){
 
     // Receive a reply from the server
     int read, index = 0;
-    while( (read = recv(socket_desc, (void *)(server_reply + index), sizeof(server_reply) - index, 0)) > 0)
+    while( (read = recv(socket_desc_client, (void *)(server_reply + index), sizeof(server_reply) - index, 0)) > 0)
     {
     	if( read < 0 ){
 			printf("Error receiving");
@@ -171,6 +200,9 @@ tm INET_getCurrentTimeDate(){
  */
 int main(){
 
+	// Initialize GPIO
+	GPIO gpio = GPIO();
+
 	// Create bus stops
 	BusStop farmersMarket_DT = BusStop(atoi(farmersMarket_DT_ID.c_str()));
 	BusStop farmersMarket_RD = BusStop(atoi(farmersMarket_DT_ID.c_str()));
@@ -192,7 +224,7 @@ int main(){
 		string webCurrentContent = INET_getWebsite(farmersMarket_DT_ID);
 
 		// Close socket
-		close(socket_desc);
+		close(socket_desc_client);
 
 		// Get data from the website
 		SC_retrieveData(webCurrentContent, &farmersMarket_DT, &currentTimeDate);
@@ -220,6 +252,8 @@ int main(){
 		printf("\n\n");
 
 
+		// Toggle LED
+		gpio.toggleLed();
 
 		// Reset wait times
 		farmersMarket_DT.BSTOP_setEmptyTime();
