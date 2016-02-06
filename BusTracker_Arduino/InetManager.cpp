@@ -1,8 +1,6 @@
-#include <sys/socket.h>
-#include <netdb.h>
-#include <arpa/inet.h>
 #include "BusStop.h"
 #include <Ethernet.h>
+#include "Display.h"
 
 /*
  * Descriptor of the socket we will use to communicate with the server
@@ -49,7 +47,7 @@ int INET_initClientSocket(){
 
     // Initialize Ethernet
     if( Ethernet.begin(eth0_mac) == 0 ){
-        Serial.println("Failed to configure Ethernet using DHCP");
+        DISP_showError();
         return 1;
     }
 
@@ -59,7 +57,7 @@ int INET_initClientSocket(){
 
     // Connect to the server
     if( ethClient.connect(webIP,80) != 1 ){
-        Serial.println("Connection failed");
+        DISP_showConnectionError();
         return 1;
     }
 }
@@ -78,10 +76,13 @@ int INET_initServer(int port){
 
 /*
  * Sends a request to the server and records the answer
+ * 
+ * @param stop_id The ID of the bus stop to look at
+ * @param closeConnection Whether the connection has to be closed at the end or not
  *
  * @return The answer of the server.
  */
-String INET_getWebsite(String stop_id){
+String INET_getWebsite(String stop_id, bool closeConnection){
 
     String resp;
 
@@ -102,9 +103,10 @@ String INET_getWebsite(String stop_id){
 
         // Check if HTML file is over
         if( resp.indexOf("</html>") != -1 ){
-            ethClient.stop();
             break;
         }
     }
+
+    if( closeConnection ) ethClient.stop();
     return resp;
 }

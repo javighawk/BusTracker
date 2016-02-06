@@ -18,24 +18,20 @@ const String avenueC20th_PH_ID = "3083";
 /*
  * BusStop objects
  */
-BusStop farmersMarket_DT(farmersMarket_DT_ID.toInt());
-BusStop farmersMarket_RD(farmersMarket_DT_ID.toInt());
-BusStop avenueC20th_DT(avenueC20th_DT_ID.toInt());
-BusStop avenueC20th_PH(avenueC20th_PH_ID.toInt());
+BusStop farmersMarket_DT_9(farmersMarket_DT_ID.toInt(), 9);
+BusStop farmersMarket_RD_9(farmersMarket_RD_ID.toInt(), 9);
+BusStop avenueC20th_DT_2(avenueC20th_DT_ID.toInt(), 2);
+BusStop avenueC20th_PH_2(avenueC20th_PH_ID.toInt(), 2);
+BusStop avenueC20th_DT_10(avenueC20th_DT_ID.toInt(), 10);
+BusStop avenueC20th_PH_10(avenueC20th_PH_ID.toInt(), 10);
 
 /*
  * Current time & date extracted from website
  */
 tm currentTimeDate;
 
-/*
- * 7-segment display manager
- */
-Display disp;
- 
-
 extern int INET_initClientSocket();
-extern String INET_getWebsite(String stop_id);
+extern String INET_getWebsite(String stop_id, bool closeConnection);
 extern void SC_retrieveData(String sourcecode, BusStop *bStop, tm *currentTimeDate);
 
 /*
@@ -47,7 +43,7 @@ void setup(){
     Serial.begin(9600);
 
     // Clear display
-    disp = Display();
+    DISP_init();
 }
 
 /*
@@ -57,31 +53,29 @@ void loop(){
 
         // Open the socket
         if( INET_initClientSocket() != 0 ){
-          // Need to implement timeout case
-          return;
+
+            // Delay 5 seconds and restart display
+            delay(5000);
+            DISP_clear();
+            return;
         }
     
-        // Get the content of the website
-        String webCurrentContent = INET_getWebsite(farmersMarket_DT_ID);
+        // Get the content of the website for the stops needed
+        //String farmersMarket_DT_webContent = INET_getWebsite(farmersMarket_DT_ID, 1);
+        String avenueC20th_DT_webContent = INET_getWebsite(avenueC20th_DT_ID, 1);
     
         // Close socket
     
         // Get data from the website
-        SC_retrieveData(webCurrentContent, &farmersMarket_DT, &currentTimeDate);
+        SC_retrieveData(avenueC20th_DT_webContent, &avenueC20th_DT_2, &currentTimeDate);
+        SC_retrieveData(avenueC20th_DT_webContent, &avenueC20th_DT_10, &currentTimeDate);
     
-        // Get waiting time
-        int waitTime[3];
-        waitTime[0] = farmersMarket_DT.BSTOP_getWaitTime(0);
-        waitTime[1] = farmersMarket_DT.BSTOP_getWaitTime(1);
-        waitTime[2] = farmersMarket_DT.BSTOP_getWaitTime(2);
-
-        disp.showWaitTime(farmersMarket_DT.BSTOP_getWaitTime(0));
+        // Display wait time
+        DISP_showWaitTime(avenueC20th_DT_10);
     
         // Reset wait times
-        farmersMarket_DT.BSTOP_setEmptyTime();
-    
-        // Delay
-        delay(CONNECT_PERIOD_MSEC);
+        avenueC20th_DT_2.BSTOP_setEmptyTime();
+        avenueC20th_DT_10.BSTOP_setEmptyTime();
 }
 
 /*

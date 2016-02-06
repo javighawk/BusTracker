@@ -18,6 +18,11 @@ String str_toFindTime = "name=\"FromTime\" value=\"";
  */
 String str_toFindWaitTime = "showVeh(busLat, busLon, routeNum, routeName, '";
 
+/*
+ * String to look for in order to find the bus line
+ */
+String str_toFindBusLine = "><td valign=\"top\" class=\"text\">";
+
 
 /*
  * Looks for a desired string in a given text (first appearance).
@@ -81,25 +86,26 @@ void SC_retrieveDateTime(tm *t, String date, String time){
  */
 void SC_retrieveData(String sourcecode, BusStop *bStop, tm *currentTimeDate){
 
-	String date, time;
-	String waitTime [WAITTIMES_N];
-
-	// Look for date and give format
-	if( SC_getString(&sourcecode, &date, str_toFindDate, 10, 1) == 0 ) return;
-
-	// Look for current time
-	if( SC_getString(&sourcecode, &time, str_toFindTime, 6, 1) == 0 ) return;
-
-	// Parse date and time data
-	SC_retrieveDateTime(currentTimeDate, date, time);
-
-	// Look for real and scheduled waiting times
-	for( int i=0 ; i<WAITTIMES_N ; i++ ){
-		if( SC_getString(&sourcecode, &waitTime[i], str_toFindWaitTime, 16, 1) == 0 ){
-			// No wait time info. Set the times in the BusStop object as errors
-			break;
-		}
-   
-		bStop->BSTOP_setSTime(waitTime[i],i);
-	}
+  	String date, time;
+  	String waitTime;
+    String line;
+    int i = 0;
+  
+  	// Look for date and give format
+  	if( SC_getString(&sourcecode, &date, str_toFindDate, 10, 1) == 0 ) return;
+  
+  	// Look for current time
+  	if( SC_getString(&sourcecode, &time, str_toFindTime, 6, 1) == 0 ) return;
+  
+  	// Parse date and time data
+  	SC_retrieveDateTime(currentTimeDate, date, time);
+  
+  	// Look for real and scheduled waiting times
+  	while( i<WAITTIMES_N ){
+    		if( SC_getString(&sourcecode, &waitTime, str_toFindWaitTime, 16, 1) == 0 ) break;
+        if( SC_getString(&sourcecode, &line, str_toFindBusLine, 2, 1) == 0 ) break;
+        if( line.toInt() != bStop->BSTOP_getBusLine() ) continue;
+  	    bStop->BSTOP_setSTime(waitTime,i);
+        i++;
+  	}
 }

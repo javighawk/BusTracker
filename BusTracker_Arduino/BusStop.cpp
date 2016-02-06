@@ -6,8 +6,9 @@ extern tm getCurrentTimeDate();
 /*
  * Constructor
  */
-BusStop::BusStop(int id){
+BusStop::BusStop(int id, int busLine){
   	BSTOP_id = id;
+    BSTOP_busLine = busLine;
   	BSTOP_setEmptyTime();
 }
 
@@ -43,6 +44,10 @@ int BusStop::BSTOP_getWaitTime(int p){
   
   	// Adjust the minutes wait if the result is negative
   	minWait += hourWait*60;
+
+    // Adjustment
+    if( minWait > 0 )
+        minWait -= 1;
   
   	return minWait;
 }
