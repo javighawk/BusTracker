@@ -72,8 +72,10 @@ void SC_retrieveDateTime(tm *t, String date, String time){
   	t->tm_hour = time.substring(0,2).toInt();
   	t->tm_min = time.substring(3,5).toInt();
   
-  	if( time[5] == 'p' )
+  	if( time[5] == 'p' && t->tm_hour != 12 )
   		  t->tm_hour += 12;
+    if( time[5] == 'a' && t->tm_hour == 12 )
+        t->tm_hour = 0;
 }
 
 
@@ -108,4 +110,7 @@ void SC_retrieveData(String sourcecode, BusStop *bStop, tm *currentTimeDate){
   	    bStop->BSTOP_setSTime(waitTime,i);
         i++;
   	}
+
+    // Refresh the lastUpdated variable
+    bStop->BSTOP_setLastUpdated();
 }
