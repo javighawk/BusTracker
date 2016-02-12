@@ -9,6 +9,7 @@ extern tm getCurrentTimeDate();
 BusStop::BusStop(int id, int busLine){
   	BSTOP_id = id;
     BSTOP_busLine = busLine;
+    BSTOP_lastUpdated = 0;
   	BSTOP_setEmptyTime();
 }
 
@@ -31,7 +32,7 @@ int BusStop::BSTOP_getWaitTime(int p){
   
   	// If real bus time is not available, return -1
   	if( busTime.tm_hour == -1 || busTime.tm_min == -1 )
-  		return -1;
+  		  return -1;
   
   	// Get differences of hour and minutes
   	int hourWait = busTime.tm_hour - now.tm_hour;
@@ -48,9 +49,10 @@ int BusStop::BSTOP_getWaitTime(int p){
     // Adjustment
     if( minWait > 0 )
         minWait -= 1;
-  
-  	return minWait;
+
+  	return max(0,minWait);
 }
+
 
 /*
  * Setter
@@ -64,10 +66,9 @@ void BusStop::BSTOP_setSTime(String st, int p){
   	BSTOP_sTime[p].tm_hour = st.substring(10,12).toInt();
   	BSTOP_sTime[p].tm_min = st.substring(13,15).toInt();
   	if( st[15] == 'p' && BSTOP_sTime[p].tm_hour != 12 ) BSTOP_sTime[p].tm_hour += 12;
-  	if( BSTOP_sTime[p].tm_hour == 0 ) BSTOP_sTime[p].tm_mday += 1;
-  
-  	// Give format
-	  mktime(&BSTOP_sTime[p]);
+    if( st[15] == 'a' && BSTOP_sTime[p].tm_hour == 12 ) BSTOP_sTime[p].tm_hour = 0;
+
+    BSTOP_setLastUpdated();
 }
 
 /*
