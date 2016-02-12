@@ -29,26 +29,35 @@ void DISP_init(){
  * 
  * @param bStop The display will show the waiting time for this bus stop
  */
-void DISP_showWaitTime(BusStop bStop){
-
+void DISP_showWaitTime(BusStop bStop, int waitTimeIndex){
+    
     // Get the closest waiting timt
-    int waitTime = bStop.BSTOP_getWaitTime(0);
+    int waitTime = bStop.BSTOP_getWaitTime(waitTimeIndex);
 
     // Get the bus line
     int busLine = bStop.BSTOP_getBusLine();
-    
-    if( waitTime == -1 ){
-        matrix7.printError();
-    } else {
-        matrix7.print(waitTime);
 
-        if( busLine < 10 ){
-            matrix7.writeDigitNum(0, busLine, false);
-        }else{
-            matrix7.writeDigitNum(0, int(busLine/10), false);
-            matrix7.writeDigitNum(1, busLine % 10, false);
-        }
+    // Show wait time (only if less than 100 minutes)
+    if( waitTime == -1 || waitTime >= 100 )
+        DISP_clear();
+    else matrix7.print(waitTime);
+
+    // Show bus line
+    if( busLine < 10 ){
+        matrix7.writeDigitNum(0, busLine, false);
+    }else{
+        matrix7.writeDigitNum(0, int(busLine/10), false);
+        matrix7.writeDigitNum(1, busLine % 10, false);
     }
+
+    // Show the index of the wait time in the semicolon on the left
+    matrix7.writeDigitRaw(2, waitTimeIndex << 2);
+
+    // If the information is out of date, show semicolons
+    long t = millis() - bStop.BSTOP_getLastUpdated();
+    if( t > LASTUPDATE_THRESHOLD )
+        matrix7.writeDigitRaw(2, 0x02);
+    
     matrix7.writeDisplay();    
 }
 
@@ -98,11 +107,9 @@ void DISP_showEthernetError(){
  */
 void DISP_showConnectionError(){
     
-    matrix7.writeDigitRaw(0, 0b00111001);     // C
-    matrix7.writeDigitRaw(1, 0b01011100);     // o
-    matrix7.writeDigitRaw(3, 0b01010100);     // n
-    matrix7.writeDigitRaw(4, 0b01010100);     // n
-    matrix7.writeDisplay();    
+    matrix7.writeDigitRaw(2, 0x10);
+    matrix7.writeDisplay();
+    delay(100);
 }
 
 
