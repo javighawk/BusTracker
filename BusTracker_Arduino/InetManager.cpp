@@ -51,15 +51,20 @@ int INET_initClientSocket(){
         return 1;
     }
 
+    // Use static address
+
     // Bring up eth0 and wait 5 seconds to continue
     system("ifup eth0");
-    delay(5000);
+    delay(1000);
 
     // Connect to the server
-    if( ethClient.connect(webIP,80) != 1 ){
-        DISP_showConnectionError();
+    int error;
+    if( (error = ethClient.connect(webIP,80)) != 1 ){
+        DISP_showConnectionError(error);
+        ethClient.stop();
         return 1;
     }
+    return 0;
 }
 
 
@@ -78,11 +83,10 @@ int INET_initServer(int port){
  * Sends a request to the server and records the answer
  * 
  * @param stop_id The ID of the bus stop to look at
- * @param closeConnection Whether the connection has to be closed at the end or not
  *
  * @return The answer of the server.
  */
-String INET_getWebsite(String stop_id, bool closeConnection){
+String INET_getWebsite(String stop_id){
 
     String resp;
 
@@ -93,20 +97,39 @@ String INET_getWebsite(String stop_id, bool closeConnection){
     ethClient.print(request);
 
     // Read answer
-    while( ethClient.connected() ){
+    while( ethClient.available() ){
 
         // Record answer
-        if( ethClient.available() ){
-            char c = ethClient.read();
-            resp += c;
-        }
+        char c = ethClient.read();
+        resp += c;
 
         // Check if HTML file is over
-        if( resp.indexOf("</html>") != -1 ){
+        if( resp.indexOf("</html>") != -1 )
             break;
-        }
     }
 
-    if( closeConnection ) ethClient.stop();
+    ethClient.stop();
     return resp;
+}
+
+
+/*
+ * Connects to website and retrieves HTML code
+ * 
+ * @param busStopID The ID of the bus stop we want to look at
+ * 
+ * @return The website's source code
+ */
+String INET_getBusStopWebsite(String busStopID){
+  
+    // Open the socket
+    if( INET_initClientSocket() != 0 ){
+
+        // Turn down Ethernet port
+        system("ifdown eth0");
+        return "";
+    }  
+
+    // Return the website
+    return INET_getWebsite(busStopID);
 }
