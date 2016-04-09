@@ -1,6 +1,24 @@
 #include "BusStop.h"
 #include <stdlib.h>
 
+/*
+  BusStop class. This represent a bus stop in one direction in the bus network.
+  
+  For each bus stop, we have the line number and a series of waiting times.
+
+  The waiting time is the time to the closest bus that hasn't come yet. We bave
+  defined 3 waiting times per bus stop, which means that for each BusStop object
+  we store the waiting time for the next 3 buses that are to come. If you want to
+  store more or less bus stops, you can change that parameter in the header file.
+
+  Attributes of each BusStop object:
+  BSTOP_id: The ID of the bus stop, specified by GTFS and the transit company.
+  BSTOP_busLine: The number of the line.
+  BSTOP_lastUpdated: The value in millis when the data was last updated.
+  BSTOP_sTime[]: tm structs that store when the next buses are coming.
+  
+ */
+
 extern tm getCurrentTimeDate();
 
 /*

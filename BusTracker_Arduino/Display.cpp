@@ -4,6 +4,12 @@
 #include <Wire.h>
 
 /*
+  This class manages the BCD display. Wraps up the functions
+  needed to display the bus waiting time and the bus line.
+ */
+
+
+/*
  * 7-segment object
  */
 Adafruit_7segment matrix7 = Adafruit_7segment();

@@ -5,9 +5,7 @@
 #include "Adafruit_GFX.h"
 #include <Wire.h>
 
-#define CONNECT_PERIOD_MSEC  30000
-
-#define INT0_PIN             2
+#define INT0_PIN             2          /* Interruption pins */
 #define INT1_PIN             3
 
 /*

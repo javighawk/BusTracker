@@ -3,6 +3,20 @@
 #include "Display.h"
 
 /*
+  This code is in charge of dealing with the Internet access. We use the Ethernet library
+  for this, so even though a knowledge of sockets is recommended, it is not strictly
+  necessary to know how to work with them.
+
+   Adapt this code to your case by modifying:
+   - The website domain you access to get the information.
+   -- Check the message sent in the function INET_getWebsite. You will have to modify that
+   -- part so the full URL (less domain) is included in the GET primitive. Check how HTML
+   -- petitions work in case of doubt.
+   - The IP of the website.
+   - The MAC address of your Ethernet interface.
+ */
+
+/*
  * Descriptor of the socket we will use to communicate with the server
  */
 int socket_desc_client;
@@ -90,7 +104,9 @@ String INET_getWebsite(String stop_id){
 
     String resp;
 
-    // Create the message to request the website
+    // Create the message to request the website. Trying to download the website:
+    // transitego.saskatoon.ca/hiwire?.a=iNextBusResults&StopId=stop_id
+    // Changing "stop_id" by the actual id.
     String request = "GET /hiwire?.a=iNextBusResults&StopId=" + stop_id + " HTTP/1.1\r\nHost: " + webURL + "\r\nConnection: close\r\n\r\n";
 
     // Send request
