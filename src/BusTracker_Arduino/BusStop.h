@@ -3,8 +3,8 @@
 
 #include "Arduino.h"
 
-#define WAITTIMES_N             3             // Number of waittimes per BusStop object
-#define LASTUPDATE_THRESHOLD    60000         // We consider the data not updated if a minute has passed since last update
+#define WAITTIMES_N		              3         /* Number of waittimes per BusStop object */
+#define LASTUPDATE_THRESHOLD    60000         /* We consider the data not updated if a minute has passed since last update */
 
 
 using namespace std;

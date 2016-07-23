@@ -1,15 +1,17 @@
 #include "BusStop.h"
 #include "Display.h"
 #include "ParsingManager.h"
-#include <avr/wdt.h>
 
-/* Defines */
-#define INT0_PIN              2           // Interrupt pin 1
-#define INT1_PIN              4           // Interrupt pin 2
-#define ANLG_PIN              A0          // Analog pin (temporary)
-#define AveM_22nd_DT_ID       "3968"      // Bus Stop ID (Ave M & 22nd St, headed to downtown)
-#define PERIOD_MS             10000       // Period between website reading
-#define WATCHDOG_PERIOD       WDTO_8S     // Watchdog reset period (8 seconds)
+#define INT0_PIN             2          /* Interruption pins */
+#define INT1_PIN             4
+#define ANLG_PIN             A0         /* Analog pin. Temporary */
+
+#define AveM_22nd_LKVW_ID    "3968"       /* Bus stops ID */
+
+#define PERIOD_MS            10000      /* Period of website reading in milliseconds */
+
+#define ON true
+
 
 /*
  * Declare functions
@@ -19,29 +21,45 @@ extern int INET_getBusStopWebsite(char *busStopID);
 extern int INET_init();
 
 
-/* Bus stop objects */
-BusStop AveM_22nd_DT(AveM_22nd_DT_ID);
+/*
+ * Bus stop objects
+ */
+BusStop AveM_22nd_LKVW(AveM_22nd_LKVW_ID);
 
 
-/* Current time & date extracted from website */
+/*
+ * Current time & date extracted from website
+ */
 int8_t currentHour, currentMin;
 
-/* Index of the bus stop currently being displayed */
+/*
+ * Index of the bus stop currently being displayed
+ */
 uint8_t currentBusStop;
 
-/* Wait time currently being displayed */
+/*
+ * Wait time currently being displayed
+ */
 uint8_t currentWaitTime;
 
-/* Time since last reading in millisceonds */
+/*
+ * Time since last reading in millisceonds
+ */
 long lastTime = 0;
 
-/* Time since colon was last changed */
+/*
+ * Time since colon was last changed
+ */
 long lastTimeColon = 0;
 
-/* Array of BusStop pointers cointaining pointers to all BusStops to Downtown */
-BusStop *allStops_DT[1] = {&AveM_22nd_DT};
+/*
+ * Array of BusStop pointers cointaining pointers to all BusStops to Downtown
+ */
+BusStop *allStops_DT[1] = {&AveM_22nd_LKVW};
 
-/* Number of all stops to Downtown */
+/*
+ * Number of all stops to Downtown
+ */
 int nAllStops_DT = sizeof(allStops_DT)/sizeof(allStops_DT[0]);
 
 /*
@@ -65,19 +83,17 @@ void setup(){
     DISP_init();
 
     // Connect to Internet
-    while( INET_init() );
-
-    // Enable watchdog
-    wdt_enable(WATCHDOG_PERIOD);
+    INET_init();
 }
 
 /*
  * Main Loop. Each bus stop information is retrieve one after another
  */
 void loop(){
-    // Retrieve updated bus stop information each PERIOD_MS milliseconds
+
     if( millis() - lastTime > PERIOD_MS ){
-        MAIN_retrieveBusStopInformation(&AveM_22nd_DT);
+        // Ave M & 22nd
+        MAIN_retrieveBusStopInformation(&AveM_22nd_LKVW);
         lastTime = millis();
     }
 
@@ -87,17 +103,13 @@ void loop(){
     else if( anlg_read < 2*1024/3 ) currentWaitTime = 1;
     else currentWaitTime = 2;
 
-    // Switch colon: This will show that the program is still running.
+    // Switch colon
     if( millis() - lastTimeColon > 500 ){
         DISP_switchColon();
         lastTimeColon = millis();
     }
 
-    // Show user-selected bus stop in the display
     DISP_showWaitTime(allStops_DT[currentBusStop], currentWaitTime);
-
-    // Feed watchdog timer
-    wdt_reset();
 }
 
 
@@ -108,14 +120,10 @@ void loop(){
  * @param bs2 Optional additional BusStop if more than one line's info is wanted
  */
 void MAIN_retrieveBusStopInformation(BusStop *bs){
-    // Reset wait times
-    bs->resetTimes();
 
-    // Set the Bus Stop we are interested in
-    STR_setBusStop(bs);
-
-    // Get the HTML code of the website and collect data
-    INET_getBusStopWebsite(bs->getId());
+    bs->resetTimes();                                                    // Reset wait times
+    STR_setBusStop(bs);                                                  // Set the Bus Stop we are interested in
+    INET_getBusStopWebsite(bs->getId());                                 // Get the HTML code of the website and collect data
 }
 
 
@@ -157,7 +165,7 @@ void MAIN_setCurrentHour(int8_t hour){ currentHour = hour; }
 void MAIN_setCurrentMinute(int8_t min){ currentMin = min; }
 
 /*
- * Getters
+ * 
  */
 int8_t *MAIN_getCurrentHour(){ return &currentHour; }
 int8_t *MAIN_getCurrentMinute(){ return &currentMin; }
