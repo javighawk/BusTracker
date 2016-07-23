@@ -1,12 +1,14 @@
 # BusTracker
-Bus tracker in Intel Galileo for Saskatoon transit. It will check the waiting time on a desired stop and display it on a 7-segment display.
+Bus tracker in Arduino for Saskatoon transit. It will check the waiting time on a desired stop and display it on a 7-segment display.
 
 The Arduino folder contains the version that works with the 7-segment display. For this version, these libraries are needed:
-- Arduino Ethernet and Wire libraries
+- Adafruit CC3000 WiFi shield: https://github.com/adafruit/Adafruit_CC3000_Library
 - Adafruit GFX library: https://github.com/adafruit/Adafruit-GFX-Library
 - Adafruit LED Backpack library: https://github.com/adafruit/Adafruit_LED_Backpack
-The display used is:
-- Adafruit 1.2" 7-segment red: https://learn.adafruit.com/adafruit-led-backpack/1-2-inch-7-segment-backpack
-- C++ libraries (stdlib, time)
 
-The Eclipse folder is an Eclipse project that prints the waiting time for the bus.
+
+The material used is:
+- Arduino Uno R3
+- Adafruit CC3000 WiFi shield
+- Potentiometer
+- Adafruit 1.2" 7-segment red

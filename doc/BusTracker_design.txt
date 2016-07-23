@@ -1,0 +1,35 @@
+BusTracker V1.0
+
+Description:
+============
+Bus tracker in Arduino for Saskatoon transit. It will check the waiting time on a desired stop and display it on a 7-segment display.
+
+
+HARDWARE:
+=========
+Arduino Uno
+Adafruit CC3000 WiFi shield
+Adafruit 1.2" 7-segment red
+Buttons
+
+
+SOFTWARE:
+=========
+Arduino IDE 1.6.8
+
+
+MODULES:
+========
+
+
+LIBRARIES:
+==========
+Wire
+Adafruit_GFX (https://github.com/adafruit/Adafruit-GFX-Library)
+Adafruit LED Backpack (https://github.com/adafruit/Adafruit_LED_Backpack)
+Adafruit CC3000 (https://github.com/adafruit/Adafruit_CC3000_Library)
+  
+
+Author: Javier Garcia
+
+Date: Jul 22, 2016
