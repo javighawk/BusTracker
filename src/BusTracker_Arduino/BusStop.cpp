@@ -1,5 +1,3 @@
-#include "BusStop.h"
-
 /*
   BusStop class. This represent a bus stop in one direction in the bus network.
   
@@ -18,8 +16,12 @@
   
  */
 
+#include "BusStop.h"
+
+/* Declaration of external functions used here */
 extern int8_t *MAIN_getCurrentHour();
 extern int8_t *MAIN_getCurrentMinute();
+
 
 /*
  * Constructor
@@ -30,16 +32,16 @@ BusStop::BusStop(char *id){
   	resetTimes();
 }
 
+
 /*
- * Sets a new waiting time for this bus stop after
+ * Set a new waiting time for this bus stop after
  * the last waiting time stored
  * 
  * @param st String with the arrival time of the bus
  * @param busLine The line of the bus to arrive
  */
 void BusStop::setWTime(String st, uint8_t busLine){
-
-    // Initial assert
+    // Initial assert: Bus line number has to be positive
     if( busLine <= 0 )
         return;
 
@@ -55,13 +57,13 @@ void BusStop::setWTime(String st, uint8_t busLine){
 
     int8_t h, m;
     
-  	// Get Real time
+  	// Get Real waiting time for this bus
   	h = (int8_t) st.substring(0,2).toInt();
   	m = (int8_t) st.substring(3,5).toInt();
   	if( st[5] == 'p' && h != 12 ) h += 12;
     if( (st[5] == 'a' || st[5] == 'x') && h == 12 ) h = 0;
 
-    // Compute time difference between Now and bus arrival
+    // Compute time difference between bus arrival and now (a.k.a. waiting time)
     h = h - *MAIN_getCurrentHour();
     m = m - *MAIN_getCurrentMinute();
     
@@ -69,15 +71,18 @@ void BusStop::setWTime(String st, uint8_t busLine){
     if( h < 0 )
         h += 24;
     
-    // Adjust the minutes wait
+    // Adjust the minutes wait (if waiting time is more than an hour, then add 60 minutes)
+    // Only minutes are shown in the display
     m += h*60;
 
     // Store waiting time
     wTime[p] = max(0,m);
     wBusLine[p] = busLine;
 
+    // Store when this bus stop was last updated
     lastUpdated = millis();
 }
+
 
 /*
  * Reset waiting times
