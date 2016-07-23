@@ -1,6 +1,8 @@
 /*
   This file contains functions that manage the BCD display. 
   in order to show the bus waiting time and the bus line.
+
+  Author: Javier Garcia  
  */
 
 #include "Display.h"

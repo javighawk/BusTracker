@@ -4,11 +4,14 @@
   necessary to know how to work with them.
 
    Adapt this code to your case by modifying:
-   - The website domain you access to get the information.
+   - The website domain you access to get the information (WEBURL).
    -- Check the message sent in the function INET_getWebsite. You will have to modify that
    -- part so the full URL (less domain) is included in the GET primitive. Check how HTML
    -- petitions work in case of doubt.
    - The IP of the website.
+   - Your WiFi SSID and Password.
+
+  Author: Javier Garcia  
  */
 
 #include <SPI.h>

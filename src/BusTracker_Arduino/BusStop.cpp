@@ -13,7 +13,8 @@
   busLine: The number of the line.
   lastUpdated: The value in millis when the data was last updated.
   sTime[]: tmElements_t structs that store when the next buses are coming.
-  
+
+  Author: Javier Garcia  
  */
 
 #include "BusStop.h"

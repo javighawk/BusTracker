@@ -1,3 +1,18 @@
+/*
+  Parsing Manager.
+  
+  This file contains all functions that manipulate strings.
+  Their objective is to find desired data in the string that is
+  being downloaded by InetManager.cpp
+
+  Before starting to parse data, we need to associate this file
+  with a BusStop object (the object corresponding to the bus stop
+  we are looking at). This object is being pointed by *bStop, and it
+  has to be set with the function STR_setBusStop() always before parsing
+
+  Author: Javier Garcia  
+ */
+ 
 #include "ParsingManager.h"
 
 #define str_timeLength                  6 
@@ -22,11 +37,35 @@ uint8_t waitTime = 0;
 
 
 /*
- * Find valuable data in the string passed as a parameter.
- * Modify the string leaving only potential valuable data
- * and erasing non-valuable data and valuable data found.
+ * Find the valuable data. InetManager passes this function chunks of   
+ * 50 characters and depending on what it finds, it will behave 
+ * one way or another.
  * 
- * param source Pointer to the string to be inspected
+ * The order in which data is being looked for is as follows:
+ * 1. Current time. We decide to use the website's current time  
+ *    because all waiting times are calculated having this time  
+ *    as reference.
+ * 2. Bus line. This is the next bus to come. If we have already  
+ *    retrieved the information about the upcoming bus, then we  
+ *    will look for the following bus to come, and so on until  
+ *    there's no information on further buses.
+ * 3. Arrival time of the bus line found at point 2. If this  
+ *    arrival time is "NA", it means that there's no real  
+ *    data for this bus, so we disregard it.
+ *    
+ * The procedure to run in each of the previous points is the following:
+ * - If the key string (defined at the top of this file as const String)
+ *   is at the beginning (i.e. indexOf() == 0) then proceed to extract
+ *   the information.
+ * - If the key string is in the string passed as parameter, but not
+ *   at the beginning (i.e. indexOf() > 0), erase whatever is before the
+ *   key string and let InetManager complete the rest of the chunk.
+ * - If the key string is not detected (i.e. indexOf() == -1), go to
+ *   the next point. If we are already in the last point (point 3),
+ *   erase the whole chunk and let InetManager give us a new one.
+ * 
+ * param source Pointer to the string to be inspected. This string
+ *              should always have the same length
  */
 void STR_findData(String *source){
   
