@@ -1,10 +1,3 @@
-#include <SPI.h>
-#include <Adafruit_CC3000.h>
-#include <Adafruit_CC3000_Server.h>
-#include <ccspi.h>
-#include "Display.h"
-#include "ParsingManager.h"
-
 /*
   This code is in charge of dealing with the Internet access. We use the Ethernet library
   for this, so even though a knowledge of sockets is recommended, it is not strictly
@@ -18,6 +11,13 @@
    - The IP of the website.
  */
 
+#include <SPI.h>
+#include <Adafruit_CC3000.h>
+#include <Adafruit_CC3000_Server.h>
+#include <ccspi.h>
+#include "Display.h"
+#include "ParsingManager.h"
+
 #define WLAN_SSID             "WiFiSSID"
 #define WLAN_PASS             "WiFiPASS"
 #define WLAN_SECURITY         WLAN_SEC_WPA2
@@ -28,48 +28,50 @@
 
 #define WEBURL                "transitego.saskatoon.ca"
 
-/*
- * WiFi handler
- */
+/* WiFi handler */
 Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ, ADAFRUIT_CC3000_VBAT, SPI_CLOCK_DIV2);
 
-/*
- * Client
- */
+/* Client */
 Adafruit_CC3000_Client clientTCP;
 
-/*
- * IP address of the website
- */
+/* IP address of the website */
 const uint32_t webIP  = cc3000.IP2U32(167, 129, 248, 111);
 
 
 /*
- * Initializes socket to communicate with the website
+ * Initialize socket to communicate with the website
  *
  * @param ip String containing the IP address to connect to
- *
  * @return 0 if correct initialization. 1 otherwise.
  */
 uint8_t INET_init(){
-
     // Initialize WiFi board
     if (!cc3000.begin()){
+        DISP_showError();
         return 1;
     }
 
     // Connect to WiFi network
     if (!cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY)){
+        DISP_showRouterConnectionError();
         return 1;
     }
+    
     // Request DHCP
     while (!cc3000.checkDHCP()){
+        DISP_showDHCP();
         delay(100);
     } 
+
+    // Correct initialization 
+    return 0;
 }
 
-uint8_t INET_connectSocket(){
-  
+
+/*
+ * Connect socket to the website
+ */
+void INET_connectSocket(){
     // Connect to server
     clientTCP = cc3000.connectTCP(webIP, 80);
 
@@ -79,23 +81,22 @@ uint8_t INET_connectSocket(){
     } else {
         DISP_showConnectionError();
         clientTCP.close();
-        return 1;
+        
+        // If connection failed, force Watchdog reset
+        while(1);
     }  
-    return 0;
 }
 
+
 /*
- * Sends a request to the server and records the answer
+ * Send a request to the server and records the answer
  * 
  * @param stop_id The ID of the bus stop to look at
  * @param parse The ParsingManager object where the valid info will be stored
- *
- * @return 1 if end of the website was reached, 0 otherwise.
  */
-uint8_t INET_getWebsite(char *stop_id){
+void INET_getWebsite(char *stop_id){
 
     String resp;
-    uint8_t res = 0;
 
     // Create the message to request the website. Trying to download the website:
     // transitego.saskatoon.ca/hiwire?.a=iNextBusResults&StopId=stop_id
@@ -110,7 +111,8 @@ uint8_t INET_getWebsite(char *stop_id){
         clientTCP.fastrprint(F("\r\nConnection: close\r\n\r\n"));
         clientTCP.println();
     } else {
-        return res;
+        // Force watchdog reset
+        while(1);
     }
 
     // Read answer
@@ -129,14 +131,12 @@ uint8_t INET_getWebsite(char *stop_id){
 
         // Check if HTML file is over
         if( resp.indexOf("</html>") != -1 ){
-            res = 1;
             break;
         }
     }
 
     // Close connection to the server
     clientTCP.close();
-    return res;
 }
 
 
@@ -147,12 +147,10 @@ uint8_t INET_getWebsite(char *stop_id){
  * 
  * @return 1 if successful, 0 otherwise.
  */
-uint8_t INET_getBusStopWebsite(char *busStopID){
-  
+void INET_getBusStopWebsite(char *busStopID){
     // Open the socket
-    if( INET_connectSocket() != 0 )
-        return 0; 
+    INET_connectSocket();
 
-    // Return the website
-    return INET_getWebsite(busStopID);
+    // Get the website
+    INET_getWebsite(busStopID);
 }
