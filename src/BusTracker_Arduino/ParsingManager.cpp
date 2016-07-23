@@ -8,25 +8,32 @@
 void MAIN_setCurrentHour(int8_t hour);
 void MAIN_setCurrentMinute(int8_t min);
 
-/* Strings to look for in order to find the info wanted */
+/*
+ * String to look for in order to find the info wanted
+ */
 const String str_toFindTime         = "FromTime\" value=\"";
 const String str_toFindBusLine      = "class=\"text\">";
 const String str_toFindArrivalTime  = "\"top\">";
 
-/* Pointer to the bus stop for which we are looking the information */
+/*
+ * Pointer to the bus stop for which we are looking the information
+ */
 BusStop *bStop;
 
-/* Pair of bus line & waiting time that it's being looked for */
+/*
+ * Pair of bus line & waiting time that it's being looked for
+ */
 uint8_t busLine = 0;
 uint8_t waitTime = 0;
 
 
 /*
- * Find valuable data in the string passed as a parameter.
- * Modify the string leaving only potential valuable data
+ * Finds valuable data in the string passed as a parameter.
+ * Modifies the string leaving only potential valuable data
  * and erasing non-valuable data and valuable data found.
  * 
  * param source Pointer to the string to be inspected
+ * 
  */
 void STR_findData(String *source){
   
@@ -78,9 +85,9 @@ void STR_findData(String *source){
 
 
 /*
- * Get date from text
+ * Gets date from text
  *
- * @param time The time as a string
+ * @param time The time in string format
  */
 void STR_retrieveCurrentTime(String time){
 
@@ -103,7 +110,7 @@ void STR_retrieveCurrentTime(String time){
 
 
 /*
- * Store on this file the Bus Stop of interest
+ * Set the Bus Stop of interest
  */
 void STR_setBusStop(BusStop *b){
     bStop = b;
