@@ -6,6 +6,7 @@
 /* Defines */
 #define ANLG_PIN              A0          // Analog pin
 #define AveM_22nd_DT_ID       "3968"      // Bus Stop ID (Ave M & 22nd St, headed to downtown)
+#define AveM_22nd_CNFD_ID     "3017"      // Bus Stop ID (Ave M & 22nd St, headed to confed. mall)
 #define PERIOD_MS             10000       // Period between website reading
 #define WATCHDOG_PERIOD       WDTO_8S     // Watchdog reset period (8 seconds)
 
@@ -19,6 +20,7 @@ extern int INET_init();
 
 /* Bus stop objects */
 BusStop AveM_22nd_DT(AveM_22nd_DT_ID);
+BusStop AveM_22nd_CNFD(AveM_22nd_CNFD_ID);
 
 
 /* Current time & date extracted from website */
@@ -34,7 +36,7 @@ uint8_t currentWaitTime;
 long lastTime = 0;
 
 /* Array of BusStop pointers cointaining pointers to all BusStops to Downtown */
-BusStop *allStops_DT[1] = {&AveM_22nd_DT};
+BusStop *allStops_DT[2] = {&AveM_22nd_DT, &AveM_22nd_CNFD};
 
 /* Number of all stops to Downtown */
 int nAllStops_DT = sizeof(allStops_DT)/sizeof(allStops_DT[0]);
@@ -64,7 +66,8 @@ void setup(){
 void loop(){
     // Retrieve updated bus stop information each PERIOD_MS milliseconds
     if( millis() - lastTime > PERIOD_MS ){
-        MAIN_retrieveBusStopInformation(&AveM_22nd_DT);
+        for( int i=0 ; i<nAllStops_DT ; i++ ) 
+            MAIN_retrieveBusStopInformation(allStops_DT[i]);
         lastTime = millis();
     }
 
