@@ -4,9 +4,7 @@
 #include <avr/wdt.h>
 
 /* Defines */
-#define INT0_PIN              2           // Interrupt pin 1
-#define INT1_PIN              4           // Interrupt pin 2
-#define ANLG_PIN              A0          // Analog pin (temporary)
+#define ANLG_PIN              A0          // Analog pin
 #define AveM_22nd_DT_ID       "3968"      // Bus Stop ID (Ave M & 22nd St, headed to downtown)
 #define PERIOD_MS             10000       // Period between website reading
 #define WATCHDOG_PERIOD       WDTO_8S     // Watchdog reset period (8 seconds)
@@ -49,17 +47,9 @@ int nAllStops_DT = sizeof(allStops_DT)/sizeof(allStops_DT[0]);
  */
 void setup(){
 
-    // Initialize Serial
-    Serial.begin(115200);
-
     // Initialize displayed bus stop and wait time indexes
     currentBusStop = 0;
     currentWaitTime = 0;
-
-    // Setup interrupts
-    // If using Arduino, trigger interrupt with RISING instead of CHANGE
-    attachInterrupt(INT0_PIN, int0_handler, CHANGE);
-    attachInterrupt(INT1_PIN, int1_handler, CHANGE);
     
     // Display Init
     DISP_init();
@@ -81,11 +71,9 @@ void loop(){
         lastTime = millis();
     }
 
-    // TEMPORARY. ERASE WHEN INTERRUPTS WORK
+    // Update the waiting time/bus stop to display by reading the variable resistor
     int anlg_read = analogRead(ANLG_PIN);
-    if( anlg_read < 1024/3 ) currentWaitTime = 0;
-    else if( anlg_read < 2*1024/3 ) currentWaitTime = 1;
-    else currentWaitTime = 2;
+    currentWaitTime = int(anlg_read / (double(1024)/WAITTIMES_N));
 
     // Switch colon: This will show that the program is still running.
     if( millis() - lastTimeColon > 500 ){
@@ -116,37 +104,6 @@ void MAIN_retrieveBusStopInformation(BusStop *bs){
 
     // Get the HTML code of the website and collect data
     INET_getBusStopWebsite(bs->getId());
-}
-
-
-/*
- * Handler for GPIO interrupt 0
- * Changes the displayed bus stop
- */
-void int0_handler(){
-
-    // Update bus stop index
-    currentBusStop = (currentBusStop + 1) % nAllStops_DT; 
-
-    // Display most recent wait time
-    currentWaitTime = 0;
-
-    // Update display
-    DISP_showWaitTime(allStops_DT[currentBusStop], currentWaitTime);
-}
-
-
-/*
- * Handler for GPIO interrupt 1
- * Changes the displayed wait time index
- */
-void int1_handler(){
-
-    // Update bus stop index
-    currentWaitTime = (currentWaitTime + 1) % WAITTIMES_N; 
-
-    // Update display
-    DISP_showWaitTime(allStops_DT[currentBusStop], currentWaitTime);
 }
 
 
