@@ -4,9 +4,10 @@
 #include <avr/wdt.h>
 
 /* Defines */
-#define ANLG_PIN              A0          // Analog pin
+#define INT0_PIN              2           // Interrupt pin
+#define INT_PERIOD_MS         200         // Minimum time between interrupts in milliseconds (used to avoid interrupt bouncing)
 #define AveM_22nd_DT_ID       "3968"      // Bus Stop ID (Ave M & 22nd St, headed to downtown)
-#define AveM_22nd_CNFD_ID     "3017"      // Bus Stop ID (Ave M & 22nd St, headed to confed. mall)
+#define AveM_22nd_FDT_ID      "3017"      // Bus Stop ID (Ave M & 22nd St, headed to confed. mall)
 #define PERIOD_MS             10000       // Period between website reading
 #define WATCHDOG_PERIOD       WDTO_8S     // Watchdog reset period (8 seconds)
 
@@ -20,7 +21,7 @@ extern int INET_init();
 
 /* Bus stop objects */
 BusStop AveM_22nd_DT(AveM_22nd_DT_ID);
-BusStop AveM_22nd_CNFD(AveM_22nd_CNFD_ID);
+BusStop AveM_22nd_FDT(AveM_22nd_FDT_ID);
 
 
 /* Current time & date extracted from website */
@@ -32,14 +33,30 @@ uint8_t currentBusStop;
 /* Wait time currently being displayed */
 uint8_t currentWaitTime;
 
+/* Wait time currently being displayed */
+boolean currentDirectionDT = true;
+
 /* Time since last reading in millisceonds */
-long lastTime = 0;
+unsigned long lastTime = 0;
 
-/* Array of BusStop pointers cointaining pointers to all BusStops to Downtown */
-BusStop *allStops_DT[2] = {&AveM_22nd_DT, &AveM_22nd_CNFD};
+/* Variable to avoud interrupt bouncing */
+unsigned long lastTimeInterrupt = 0;
 
-/* Number of all stops to Downtown */
+/* Array of BusStop pointers cointaining pointers to all BusStops TO Downtown */
+BusStop *allStops_DT[2] = {&AveM_22nd_DT};
+
+/* Array of BusStop pointers cointaining pointers to all BusStops FROM Downtown */
+BusStop *allStops_FDT[2] = {&AveM_22nd_FDT};
+
+/* Number of all stops TO Downtown */
 int nAllStops_DT = sizeof(allStops_DT)/sizeof(allStops_DT[0]);
+
+/* Number of all stops FROM Downtown */
+int nAllStops_FDT = sizeof(allStops_DT)/sizeof(allStops_DT[0]);
+
+/* Time since colon was last changed */
+long lastTimeColon = 0;
+
 
 /*
  * Setup function
@@ -56,6 +73,9 @@ void setup(){
     // Connect to Internet
     while( INET_init() );
 
+    // Setup interrupts
+    attachInterrupt(digitalPinToInterrupt(INT0_PIN), int0_handler, RISING);
+
     // Enable watchdog
     wdt_enable(WATCHDOG_PERIOD);
 }
@@ -71,9 +91,11 @@ void loop(){
         lastTime = millis();
     }
 
-    // Update the waiting time/bus stop to display by reading the variable resistor
-    int anlg_read = analogRead(ANLG_PIN);
-    currentWaitTime = int(anlg_read / (double(1024)/WAITTIMES_N));
+    // Switch colon
+    if( millis() - lastTimeColon > 500 ){
+        DISP_switchColon();
+        lastTimeColon = millis();
+    }
     
     // Show user-selected bus stop in the display
     DISP_showWaitTime(allStops_DT[currentBusStop], currentWaitTime);
@@ -98,6 +120,24 @@ void MAIN_retrieveBusStopInformation(BusStop *bs){
 
     // Get the HTML code of the website and collect data
     INET_getBusStopWebsite(bs->getId());
+}
+
+
+/*
+ * Handler for GPIO interrupt
+ * Changes the displayed wait time index
+ */
+void int0_handler(){
+    // Check time from last interrupt
+    unsigned long nowTime = millis();
+    if( millis() - lastTimeInterrupt <= INT_PERIOD_MS )
+        return;
+
+    // Update bus stop index
+    currentWaitTime = (currentWaitTime + 1) % WAITTIMES_N; 
+
+    // Update last time interrupt was executed
+    lastTimeInterrupt = nowTime;
 }
 
 
