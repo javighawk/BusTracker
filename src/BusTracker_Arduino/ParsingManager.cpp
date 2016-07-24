@@ -8,7 +8,27 @@
   Before starting to parse data, we need to associate this file
   with a BusStop object (the object corresponding to the bus stop
   we are looking at). This object is being pointed by *bStop, and it
-  has to be set with the function STR_setBusStop() always before parsing
+  has to be set with the function STR_setBusStop() always before parsing.
+
+  For each data of interest we have:
+  - A key string: This helps us to find where our data of interest is.
+  - An offset: This is the distance in characters between the start of
+    the key string and the start of the data of interest.
+
+  As an example, given the following string:
+  "my key string, random text, data of interest"
+  we define:
+  - Key string = "key string"
+  - Data of interest = "data of interest"
+  - Offset = length of "key string, random text, "
+
+  There are many combinations. As a recommendations, try to make key strings
+  as short as possible (but make sure that they still help you find ONLY
+  the data of interest, you don't want this string to appear in the source
+  code in places where there's no data of interest). The offset and the
+  length of the data of interest should not be longer than the size of the
+  chunk you are downloading (in this case, our chunks are 50 characters long, so:
+  offset + length(dataOfInterest) <= 50.
 
   Author: Javier Garcia  
  */
@@ -37,8 +57,6 @@
  */
 void MAIN_setCurrentHour(int8_t hour);
 void MAIN_setCurrentMinute(int8_t min);
-
-
 
 /* Pointer to the bus stop for which we are looking the information */
 BusStop *bStop;
