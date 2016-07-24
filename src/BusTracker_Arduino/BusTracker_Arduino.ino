@@ -33,9 +33,6 @@ uint8_t currentWaitTime;
 /* Time since last reading in millisceonds */
 long lastTime = 0;
 
-/* Time since colon was last changed */
-long lastTimeColon = 0;
-
 /* Array of BusStop pointers cointaining pointers to all BusStops to Downtown */
 BusStop *allStops_DT[1] = {&AveM_22nd_DT};
 
@@ -74,13 +71,7 @@ void loop(){
     // Update the waiting time/bus stop to display by reading the variable resistor
     int anlg_read = analogRead(ANLG_PIN);
     currentWaitTime = int(anlg_read / (double(1024)/WAITTIMES_N));
-
-    // Switch colon: This will show that the program is still running.
-    if( millis() - lastTimeColon > 500 ){
-        DISP_switchColon();
-        lastTimeColon = millis();
-    }
-
+    
     // Show user-selected bus stop in the display
     DISP_showWaitTime(allStops_DT[currentBusStop], currentWaitTime);
 
