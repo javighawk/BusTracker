@@ -110,7 +110,7 @@ void DISP_init(){
  * @param waitTimeIndex Indicates which bus' waiting time to be displayed (0 = the very next bus' waiting time)
  */
 void DISP_showWaitTime(BusStop *bStop, uint8_t waitTimeIndex){
-    // Get the closest waiting timt
+    // Get the closest waiting time
     uint8_t waitTime = bStop->getWTime(waitTimeIndex);
 
     // Get the bus line
