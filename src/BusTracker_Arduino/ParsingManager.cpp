@@ -15,7 +15,16 @@
  
 #include "ParsingManager.h"
 
-#define str_timeLength                  6 
+/* Strings to look for in order to find the info wanted */
+#define STR_TOFINDTIME            "FromTime\" value=\""
+#define STR_TOFINDBUSLINE         "class=\"text\">"
+#define STR_TOFINDARRIVALTIME     "\"top\">"
+
+/* Length of strings */
+#define STR_TOFINDTIMELEN         17
+#define STR_TOFINDBUSLINELEN      13
+#define STR_TOFINDARRIVALTIMELEN  6
+#define STR_TIMELEN               6
 
 /*
  * Extern functions
@@ -23,10 +32,7 @@
 void MAIN_setCurrentHour(int8_t hour);
 void MAIN_setCurrentMinute(int8_t min);
 
-/* Strings to look for in order to find the info wanted */
-const String str_toFindTime         = "FromTime\" value=\"";
-const String str_toFindBusLine      = "class=\"text\">";
-const String str_toFindArrivalTime  = "\"top\">";
+
 
 /* Pointer to the bus stop for which we are looking the information */
 BusStop *bStop;
@@ -73,11 +79,11 @@ void STR_findData(String *source){
     int len = source->length();
 
     // Look first for the current time
-    if( (idx = source->indexOf(str_toFindTime)) != -1 ){
+    if( (idx = source->indexOf(STR_TOFINDTIME)) != -1 ){
 
         // If the text of interest is at the beginning of the String, retrieve useful info and reset String
         if( idx == 0 ){
-            STR_retrieveCurrentTime(source->substring(str_toFindTime.length(), str_toFindTime.length() + str_timeLength));
+            STR_retrieveCurrentTime(source->substring(STR_TOFINDTIMELEN, STR_TOFINDTIMELEN + STR_TIMELEN));
             *source = String();
 
         // Otherwise, remove what's before the text of interest.
@@ -86,9 +92,9 @@ void STR_findData(String *source){
         }
 
     // Look for the bus line
-    } else if( (idx = source->indexOf(str_toFindBusLine)) != -1 ){
+    } else if( (idx = source->indexOf(STR_TOFINDBUSLINE)) != -1 ){
         if( idx == 0 ){
-            busLine = (uint8_t) source->substring(str_toFindBusLine.length(), str_toFindBusLine.length() + 2).toInt();
+            busLine = (uint8_t) source->substring(STR_TOFINDBUSLINELEN, STR_TOFINDBUSLINELEN + 2).toInt();
             *source = String();
         } else {
             *source = source->substring(idx,len);
@@ -96,9 +102,9 @@ void STR_findData(String *source){
 
 
     // Look for the wait time
-    } else if( (idx = source->indexOf(str_toFindArrivalTime)) != -1 ){
+    } else if( (idx = source->indexOf(STR_TOFINDARRIVALTIME)) != -1 ){
         if( idx == 0 ){
-            String waitData = source->substring(str_toFindArrivalTime.length(), str_toFindArrivalTime.length() + str_timeLength);
+            String waitData = source->substring(STR_TOFINDARRIVALTIMELEN, STR_TOFINDARRIVALTIMELEN + STR_TIMELEN);
             
             // If waittime is not available, continue
             if( waitData.substring(0,2) != "NA" )
@@ -109,9 +115,10 @@ void STR_findData(String *source){
             *source = source->substring(idx,len);
         }
 
-    // Otherwise erase what's not useful information
+    // Otherwise erase what's not useful information (keep some of the last characters
+    // lest we erase part of a string that we are looking for)
     } else {
-        *source = source->substring(len - str_toFindTime.length(),len);
+        *source = source->substring(len - STR_TOFINDTIMELEN,len);
     }
 }
 
