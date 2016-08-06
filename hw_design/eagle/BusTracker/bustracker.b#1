@@ -156,6 +156,9 @@
 <text x="8.4582" y="56.5404" size="1.778" layer="21">NEXT BUS</text>
 <text x="30.6578" y="56.515" size="1.778" layer="21">NEXT STOP</text>
 <text x="10.16" y="27.94" size="5.08" layer="21">BusTracker</text>
+<text x="45.72" y="20.32" size="3.81" layer="22" rot="MR0">Javier G.</text>
+<text x="45.72" y="10.16" size="1.778" layer="22" rot="MR0">javighawk.wordpress.com</text>
+<text x="45.72" y="7.62" size="1.778" layer="22" rot="MR0">2016</text>
 </plain>
 <libraries>
 <library name="SparkFun-LED">
