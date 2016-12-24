@@ -99,13 +99,17 @@ public class BusTracker {
 				// Get trip direction
 				String tripDirection = gtfsdata.getTripDirection(tu.getTrip().getTripId());
 				
+				if (!tripDirection.equals("City Centre"))
+					continue;
+				
 				// Iterate through all the Stop updates
 				for (StopTimeUpdate stu : tu.getStopTimeUpdateList()){
 					
 					// Work only with the stops of interest
 					if (stop_ids.contains(stu.getStopId())) {						  
 						System.out.print(routeNumber + " " + tripDirection + ": ");
-						System.out.println(stu.getArrival().getDelay()/60 + " min");
+						System.out.println(stu.getArrival().getDelay()/60 + " min");						
+						System.out.println(gtfsdata.getScheduledArrivalTime(tu.getTrip().getTripId(), stu.getStopId()));
 					}
 				}
 				  
