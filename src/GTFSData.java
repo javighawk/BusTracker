@@ -16,6 +16,7 @@ public class GTFSData {
 	public Set<Map<String, String>> stops = new HashSet<Map<String, String>>();
 	public Set<Map<String, String>> trips = new HashSet<Map<String, String>>();
 	
+	
 	/*
 	 * Parse all GTFS data from txt files
 	 * @param path Path to the txt files containing the GTFS static data
@@ -27,6 +28,7 @@ public class GTFSData {
 		parse(Paths.get(path, "stops.txt").toString(), this.stops);
 		parse(Paths.get(path, "trips.txt").toString(), this.trips);		
 	}
+	
 	
 	/*
 	 * Parse data from GTFS static feed
@@ -67,7 +69,8 @@ public class GTFSData {
 		}
 	}
 
-	/**
+	
+	/*
 	 * Find on a given set an entry that contains the (key,value) pairs specified in the
 	 * parameter map
 	 * @param set Set where the function will look in
@@ -91,5 +94,61 @@ public class GTFSData {
 				returnSet.add(entry);
 		}
 		return returnSet;
+	}
+	
+	
+	/*
+	 * Find on a given set and entry that contains the (key,value) pair specified in the
+	 * parameter map
+	 * @param set Set where the function will look in
+	 * @param key Key to look for
+	 * @param value Value to look for
+	 * @return Set with the maps found that has the (key,value) pair to find
+	 */
+	public Set<Map<String, String>> getMapFromData(Set<Map<String, String>> set, String key, String value){
+		// Create a HashMap to execute query
+		Map<String, String> m1 = new HashMap<String, String>();
+		m1.put(key, value);
+		
+		// Execute query and return
+		return getMapFromData(set, m1);
+	}
+	
+	
+	/*
+	 * Get trip direction given a trip ID
+	 * @param tripID Trip ID in string
+	 * @return Trip direction as a string as specified in the GTFS static data
+	 * @throws Exception If the given trip ID maps to more than 1 trip
+	 */
+	public String getTripDirection(String tripID) throws Exception{
+		// Run query
+		Set<Map<String, String>> m2 = getMapFromData(this.trips, "trip_id", tripID);
+		
+		// Check if we have retrieved more than one Trip
+		if (m2.size() > 1)
+			throw new Exception("More than one trip matches the given trip ID");
+		  
+		// Return route number as String
+		return m2.iterator().next().get("trip_headsign");
+	}
+	
+	
+	/*
+	 * Get route number given a route ID
+	 * @param routeID Route ID in string
+	 * @return Route number as a string as specified in the GTFS static data
+	 * @throws Exception If the given route ID maps to more than 1 route
+	 */
+	public String getRouteNumber(String routeID) throws Exception{
+		// Run query
+		Set<Map<String, String>> m2 = getMapFromData(this.routes, "route_id", routeID);
+		
+		// Check if we have retrieved more than one Trip
+		if (m2.size() > 1)
+			throw new Exception("More than one route matches the given route ID");
+		  
+		// Return route number as String
+		return m2.iterator().next().get("route_short_name");
 	}
 }
