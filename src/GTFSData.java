@@ -66,4 +66,32 @@ public class GTFSData {
 			e.printStackTrace();
 		}
 	}
+
+	/**
+	 * Find on a given set an entry that contains the (key,value) pairs specified in the
+	 * parameter map
+	 * @param set Set where the function will look in
+	 * @param map Map containing the (key,value) pairs to look for
+	 * @return Set with the maps found that has the (key,value) pairs to find
+	 */
+	public Set<Map<String, String>> getMapFromData(Set<Map<String, String>> set, Map<String, String> map){
+		// Initialize Set
+		Set<Map<String, String>> returnSet = new HashSet<Map<String, String>>();
+		
+		// Convert given map into set
+		Set<Map.Entry<String, String>> refSet = map.entrySet();
+		
+		System.out.println(refSet);
+		
+		// Iterate through all the entries in the given set
+		for (Map<String, String> entry : set) {
+			// Convert to Set
+			Set<Map.Entry<String, String>> checkSet = entry.entrySet();
+			
+			// Check if this set contains the reference set
+			if (checkSet.containsAll(refSet))
+				returnSet.add(entry);
+		}
+		return returnSet;
+	}
 }
