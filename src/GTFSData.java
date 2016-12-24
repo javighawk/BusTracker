@@ -81,8 +81,6 @@ public class GTFSData {
 		// Convert given map into set
 		Set<Map.Entry<String, String>> refSet = map.entrySet();
 		
-		System.out.println(refSet);
-		
 		// Iterate through all the entries in the given set
 		for (Map<String, String> entry : set) {
 			// Convert to Set
