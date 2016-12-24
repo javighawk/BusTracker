@@ -151,4 +151,28 @@ public class GTFSData {
 		// Return route number as String
 		return m2.iterator().next().get("route_short_name");
 	}
+	
+	/*
+	 * Get scheduled arrival time of bus given the bus stop ID and the trip ID
+	 * @param tripID Trip ID as String
+	 * @param stopID Stop ID as String
+	 * @return Scheduled arrival time as String
+	 * @throws Exception If the given stop ID and trip ID maps to more than 1 scheduled time
+	 */
+	public String getScheduledArrivalTime(String tripID, String stopID) throws Exception{
+		// Create a HashMap to execute query
+		Map<String, String> m1 = new HashMap<String, String>();
+		m1.put("trip_id", tripID);
+		m1.put("stop_id", stopID);
+		
+		// Execute query
+		Set<Map<String, String>> m2 = getMapFromData(this.stop_times, (Map<String, String>) m1);
+		
+		// Check if we have retrieved more than one Trip
+		if (m2.size() > 1)
+			throw new Exception("More than one sched time matches the given trip and stop ID");
+		
+		// Return scheduled time as String
+		return m2.iterator().next().get("arrival_time");
+	}
 }
