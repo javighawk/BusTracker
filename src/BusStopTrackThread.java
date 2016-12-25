@@ -1,11 +1,7 @@
-import java.util.Map;
 import java.util.Set;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.lang.Exception;
 import java.time.LocalTime;
@@ -18,14 +14,10 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
 
 public class BusStopTrackThread extends Thread {
-	
-	/* Bus stop name */
-	private String busStopName;
-	
+
 	/* Attributes */
+	private String busStopName;
 	private Set<String> stop_ids = new HashSet<String>();
-	public URL url;
-	private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	private long BUSTRACK_PERIOD_MS = 10000;
 
 	
@@ -40,13 +32,6 @@ public class BusStopTrackThread extends Thread {
 		
 		// Retrieve the bus stop IDs
 		this.stop_ids = Main.gtfsdata.getBusStopIDs(busStopName);
-		
-		// Intialize URL
-		try {
-			this.url = new URL(url);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
 	}
 
 	
@@ -60,7 +45,7 @@ public class BusStopTrackThread extends Thread {
 				System.out.println("Initialize");
 				
 				// Get FeedMessage
-				FeedMessage feed = FeedMessage.parseFrom(this.url.openStream());
+				FeedMessage feed = FeedMessage.parseFrom(Main.url.openStream());
 	
 				// Iterate through all the FeedEntities
 				for (FeedEntity entity : feed.getEntityList()) {
@@ -105,6 +90,15 @@ public class BusStopTrackThread extends Thread {
 		}
 		
 		System.out.println("End");
+	}
+	
+	
+	/*
+	 * Getter
+	 * @return Bus stop name
+	 */
+	public String getBusStopName(){
+		return this.busStopName;
 	}
 
 	

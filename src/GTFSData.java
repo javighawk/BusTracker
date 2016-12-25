@@ -170,6 +170,8 @@ public class GTFSData {
 		// Check if we have retrieved more than one Trip
 		if (m2.size() > 1)
 			throw new Exception("More than one route matches the given route ID");
+		
+		System.out.println(routeID);
 		  
 		// Return route number as String
 		return m2.iterator().next().get("route_short_name");
