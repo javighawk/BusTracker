@@ -1,30 +1,21 @@
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.lang.Exception;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import static java.time.temporal.ChronoUnit.MINUTES;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.transit.realtime.GtfsRealtime.FeedEntity;
-import com.google.transit.realtime.GtfsRealtime.FeedHeader;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
-import com.google.transit.realtime.GtfsRealtime.Position;
-import com.google.transit.realtime.GtfsRealtime.TripDescriptor;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate;
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
-import com.google.transit.realtime.GtfsRealtime.VehicleDescriptor;
-import com.google.transit.realtime.GtfsRealtime.VehiclePosition;
-import com.google.transit.realtime.GtfsRealtime.VehiclePosition.VehicleStopStatus;
 
 public class BusTracker {
 	
@@ -37,6 +28,7 @@ public class BusTracker {
 	public static GTFSData gtfsdata = new GTFSData();
 	public static Set<String> stop_ids = new HashSet<String>();
 	public static URL url;
+	public static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	
 	/*
 	 * Initialize bus tracker 
@@ -106,24 +98,51 @@ public class BusTracker {
 				for (StopTimeUpdate stu : tu.getStopTimeUpdateList()){
 					
 					// Work only with the stops of interest
-					if (stop_ids.contains(stu.getStopId())) {						  
+					if (stop_ids.contains(stu.getStopId())) {
+						long wait = getWaitingTime(gtfsdata.getScheduledArrivalTime(tu.getTrip().getTripId(), stu.getStopId()),
+													stu.getArrival().getDelay(),
+													gtfsdata.getTimeZone());
+
 						System.out.print(routeNumber + " " + tripDirection + ": ");
-						System.out.println(stu.getArrival().getDelay()/60 + " min");						
-						System.out.println(gtfsdata.getScheduledArrivalTime(tu.getTrip().getTripId(), stu.getStopId()));
+						System.out.println(wait + " min");
 					}
 				}
 				  
 				 }			
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 		System.out.println("End");
+	}
+
+	
+	/*
+	 * Calculate the waiting time for a bus given the scheduled arrival time and the delay
+	 * @param schedTime Scheduled time as String (extracted from GTFS static data)
+	 * @param delaySec Delay in seconds (as extracted from the Trip update)
+	 * @param timezone Timezone of the bus agency (extracted from GTFS static data)
+	 * @return Delay in minutes
+	 * @throws ParseException When scheduled arrival format is not valid
+	 */
+	public static long getWaitingTime(String schedTime, int delaySec, String timezone) throws ParseException{
+		// Get current time in the Bus agency local time
+		LocalTime now = LocalTime.now(ZoneId.of(timezone));
+		
+		// Parse scheduled arrival (this is in the bus agency's time zone)
+		LocalTime sched = LocalTime.parse(schedTime);
+		
+		// Get the difference in time
+		long diff = now.until(sched, MINUTES);
+		
+		// Add the delay
+		diff += (long) (delaySec / 60);
+		
+		// Return waiting time in minutes
+		return diff;
 	}
 }
