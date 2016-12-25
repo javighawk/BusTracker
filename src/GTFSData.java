@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 public class GTFSData {
 
 	/* Sets of maps storing the information from the static GTFS feed */
+	public Set<Map<String, String>> agency = new HashSet<Map<String, String>>();
 	public Set<Map<String, String>> routes = new HashSet<Map<String, String>>();
 	public Set<Map<String, String>> stop_times = new HashSet<Map<String, String>>();
 	public Set<Map<String, String>> stops = new HashSet<Map<String, String>>();
@@ -22,7 +23,8 @@ public class GTFSData {
 	 * @param path Path to the txt files containing the GTFS static data
 	 */
 	public void parseFromPath(String path){
-		// Parse routes, stop times, stops and trips
+		// Parse agency, routes, stop times, stops and trips
+		parse(Paths.get(path, "agency.txt").toString(), this.agency);
 		parse(Paths.get(path, "routes.txt").toString(), this.routes);
 		parse(Paths.get(path, "stop_times.txt").toString(), this.stop_times);
 		parse(Paths.get(path, "stops.txt").toString(), this.stops);
@@ -174,5 +176,15 @@ public class GTFSData {
 		
 		// Return scheduled time as String
 		return m2.iterator().next().get("arrival_time");
+	}
+	
+	
+	/*
+	 * Get timezone of the bus agency
+	 * @return Timezone as String
+	 */
+	public String getTimeZone(){
+		// Return timezone as String
+		return this.agency.iterator().next().get("agency_timezone");
 	}
 }
