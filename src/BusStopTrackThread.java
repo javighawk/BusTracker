@@ -17,6 +17,7 @@ public class BusStopTrackThread extends Thread {
 
 	/* Attributes */
 	private String busStopName;
+	private boolean cityCentre = true;
 	private Set<String> stop_ids = new HashSet<String>();
 	private long BUSTRACK_PERIOD_MS = 10000;
 
@@ -41,9 +42,6 @@ public class BusStopTrackThread extends Thread {
 	public void run(){
 		try {
 			while(true){
-				// Trace
-				System.out.println("Initialize");
-				
 				// Get FeedMessage
 				FeedMessage feed = FeedMessage.parseFrom(Main.url.openStream());
 	
@@ -60,7 +58,13 @@ public class BusStopTrackThread extends Thread {
 						// Get trip direction
 						String tripDirection = Main.gtfsdata.getTripDirection(tu.getTrip().getTripId());
 						
-						if (!tripDirection.equals("City Centre"))
+						// Check if route or trip exist in the GTFS files
+						if (routeNumber == null || tripDirection == null) {
+							continue;
+						}
+						
+						// Get only updates for the selected direction
+						if (tripDirection.equals("City Centre") != this.cityCentre)
 							continue;
 						
 						// Iterate through all the Stop updates

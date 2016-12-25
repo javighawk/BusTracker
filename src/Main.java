@@ -20,14 +20,8 @@ public class Main {
 	 * Initialize bus tracker 
 	 */
 	public static void initialize(){
-		// Trace
-		System.out.println("start");
-		
 		// Load GTFS data
 		gtfsdata.parseFromPath(gtfsPath);
-		
-		// Trace
-		System.out.println("Parsed");
 		
 		// Initialize bus stop objects
 		bStop_22nd = new BusStopTrackThread(bStop_22nd_name, gtfsURL);
@@ -38,9 +32,6 @@ public class Main {
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
-		
-		// Trace
-		System.out.println("End init");
 	}
 	
 	
