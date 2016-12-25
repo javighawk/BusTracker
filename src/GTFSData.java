@@ -118,6 +118,27 @@ public class GTFSData {
 	
 	
 	/*
+	 * Get bus stop IDs for a given bus stop name. Usually there would be 2,
+	 * one for each direction
+	 * @param busStopName Name of the bus stop
+	 * @return Set of the bus stop IDs matching the given name
+	 */
+	public Set<String> getBusStopIDs(String busStopName){
+		// Initialize Set to return
+		Set<String> ret = new HashSet<String>();
+		
+		// Run query
+		Set<Map<String, String>> m = getMapFromData(this.stops, "stop_name", busStopName);
+		
+		// Extract the stop IDs
+		for (Map<String, String> s : m)
+			ret.add(s.get("stop_id"));
+		
+		return ret;
+	}
+	
+	
+	/*
 	 * Get trip direction given a trip ID
 	 * @param tripID Trip ID in string
 	 * @return Trip direction as a string as specified in the GTFS static data
@@ -153,6 +174,7 @@ public class GTFSData {
 		// Return route number as String
 		return m2.iterator().next().get("route_short_name");
 	}
+	
 	
 	/*
 	 * Get scheduled arrival time of bus given the bus stop ID and the trip ID
