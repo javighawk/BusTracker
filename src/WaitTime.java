@@ -1,5 +1,6 @@
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,9 +60,10 @@ public class WaitTime {
 		// Initialize start/end date
 		this.start_end_dates = new HashMap<String, LocalDate>();
 		
-		// Add entries
-		this.start_end_dates.put("start_date", LocalDate.parse(cal.get("start_date")));
-		this.start_end_dates.put("end_date", LocalDate.parse(cal.get("end_date")));
+		// Add start/end dates
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+		this.start_end_dates.put("start_date", LocalDate.parse(cal.get("start_date"), dtf));
+		this.start_end_dates.put("end_date", LocalDate.parse(cal.get("end_date"), dtf));
 	}
 
 	

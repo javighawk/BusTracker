@@ -4,10 +4,12 @@ import java.util.TreeSet;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.lang.Exception;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
@@ -49,14 +51,18 @@ public class BusStopTrackThread extends Thread {
 		this.stop_times = new HashMap<String, WaitTime>();
 		
 		// Retrieve the stop times for all trips
-		for(Map<String, String> wt : Main.gtfsdata.getBusStopTimes(busStopName)){
+		for(Map<String, String> wt : Main.gtfsdata.getBusStopTimes(busStopName)){ 
 			// Add a new WaitTime object
 			try {
+				// Get calendar info
+				Map<String, String> cal = Main.gtfsdata.getCaledarFromTripID(wt.get("trip_id"));
+				
+				
 				stop_times.put(wt.get("trip_id"), 
 								new WaitTime(wt.get("trip_id"), 
 											this.busStopName, 
 											wt.get("arrival_time"),
-											Main.gtfsdata.getDatesFromServiceID(wt.get("service_id"))));
+											cal));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -72,6 +78,8 @@ public class BusStopTrackThread extends Thread {
 		System.out.println("start thread");
 		while(true){
 			try{
+				long before = System.currentTimeMillis();
+				
 				// Get FeedMessage
 				FeedMessage feed = FeedMessage.parseFrom(Main.url.openStream());
 	
@@ -81,12 +89,14 @@ public class BusStopTrackThread extends Thread {
 				System.out.println(updates);
 				
 				// Get the next 3 waiting times
-				Set<WaitTime> times = getNextWaitTimes(updates, 6);
+				Set<WaitTime> times = getNextWaitTimes(updates, 3);
 				
 				for (WaitTime s : times) {
 					System.out.print(Main.gtfsdata.getBusNumberFromTrip(s.getTripID()) + " " + Main.gtfsdata.getTripDirection(s.getTripID()) + ": ");
 					System.out.println(getWaitingTime(s.getSchedTime().toString(), s.getDelay()));
 				}
+				
+				System.out.println(System.currentTimeMillis() - before);
 				
 				// Delay
 				Thread.sleep(BUSTRACK_PERIOD_MS);
@@ -214,25 +224,39 @@ public class BusStopTrackThread extends Thread {
 	 * @return Sorted set of WaitTime objects
 	 * @throws Exception from GTFS query
 	 */
-	private SortedSet<WaitTime> getNextWaitTimes(Map<String, Integer> delay, int nTimes) throws Exception{
+	private SortedSet<WaitTime> getNextWaitTimes(Map<String, Integer> delay, int nTimes) throws Exception{		
+		// Get today's date
+		LocalDate today = LocalDate.now(ZoneId.of(Main.gtfsdata.getTimeZone()));
+		
 		// Make a copy of the stop_trip Map
 		Map<String, WaitTime> map = new HashMap<String, WaitTime>(this.stop_times);
 		
 		// Add delay to the given trips
-		for (String trip : delay.keySet())
-			if (map.containsKey(trip))
-				map.replace(trip, map.get(trip)).setDelay(delay.get(trip));
+		for (String trip : delay.keySet()){
+			if (map.containsKey(trip)){
+				// Create new WaitTime object and add delay
+				WaitTime wt = map.get(trip);
+				wt.setDelay(delay.get(trip));
+				
+				// Replace it on the Map object
+				map.replace(trip,wt);
+			}
+		}
 
-		// Make a set of the initial map with the future trips going to the selected direction
+		// Make a set of the initial map with the future trips going to the selected direction running today
 		SortedSet<WaitTime> aux = new TreeSet<WaitTime>(Main.waitTimeComp);
 		
-		// Create a reference reference WaitTime object
+		// Create a reference WaitTime object
 		LocalTime ref = LocalTime.now(ZoneId.of(Main.gtfsdata.getTimeZone()));
 
 		// Iterate through all the map entries
 		for (String trip : map.keySet()) {
+			// Extract WaitTime object
 			WaitTime wt = map.get(trip);
-			if (wt.getSchedTime().compareTo(ref) >= 0 && this.cityCentre == wt.getCityCentre())
+			
+			if (wt.getSchedTime().compareTo(ref) >= 0 && 
+				this.cityCentre == wt.getCityCentre() &&
+				wt.isRunning(today))
 				aux.add(map.get(trip));
 		}
 		
@@ -241,8 +265,6 @@ public class BusStopTrackThread extends Thread {
 		Iterator<WaitTime> iter = aux.iterator();
 		for (int i=0 ; i<nTimes ; i++){
 			WaitTime wt = iter.next();
-			System.out.println(Main.gtfsdata.getBusNumberFromTrip(wt.getTripID()) + " " + Main.gtfsdata.getTripDirection(wt.getTripID()) + " " + wt.getTripID() + " " + wt.getDelay() + " " + wt.getSchedTime());
-			wt = iter.next();
 			System.out.println(Main.gtfsdata.getBusNumberFromTrip(wt.getTripID()) + " " + Main.gtfsdata.getTripDirection(wt.getTripID()) + " " + wt.getTripID() + " " + wt.getDelay() + " " + wt.getSchedTime());
 			ret.add(wt);
 		}

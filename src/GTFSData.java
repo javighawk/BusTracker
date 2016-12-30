@@ -333,7 +333,7 @@ public class GTFSData {
 	 * Get the working days for a given service ID
 	 * @param serciceID Service ID as a String
 	 * @return Map containing true on the days where the service is working
-	 * @throws Exception If the given serviceID maps to multipe or none entries on the calendar table
+	 * @throws Exception If the given serviceID maps to multiple or none entries on the calendar table
 	 */
 	public Map<String, Boolean> getDatesFromServiceID(String serviceID) throws Exception{
 		// Retrieve the calendar entry for the given Service ID
@@ -352,15 +352,48 @@ public class GTFSData {
 		Map<String, Boolean> ret = new HashMap<String, Boolean>();
 		
 		// Add values to ret
-		ret.put("monday", Boolean.parseBoolean(cal.get("monday")));
-		ret.put("tuesday", Boolean.parseBoolean(cal.get("tuesday")));
-		ret.put("wednesday", Boolean.parseBoolean(cal.get("wednesday")));
-		ret.put("thursday", Boolean.parseBoolean(cal.get("thursday")));
-		ret.put("friday", Boolean.parseBoolean(cal.get("friday")));
-		ret.put("saturday", Boolean.parseBoolean(cal.get("saturday")));
-		ret.put("sunday", Boolean.parseBoolean(cal.get("sunday")));
+		ret.put("monday", cal.get("monday").equals("1"));
+		ret.put("tuesday", cal.get("tuesday").equals("1"));
+		ret.put("wednesday", cal.get("wednesday").equals("1"));
+		ret.put("thursday", cal.get("thursday").equals("1"));
+		ret.put("friday", cal.get("friday").equals("1"));
+		ret.put("saturday", cal.get("saturday").equals("1"));
+		ret.put("sunday", cal.get("sunday").equals("1"));
 		
 		return ret;
+	}
+	
+	
+	/*
+	 * Get the calendar data for a given trip ID
+	 * @param tripID Trip ID as a String
+	 * @return Map containing true on the days where the service is working
+	 * @throws Exception If the given trip ID maps to multiple or none entries on the calendar table
+	 */
+	public Map<String, String> getCaledarFromTripID(String tripID) throws Exception{
+		// Retrieve the trip entry for the given Service ID
+		Set<Map<String, String>> entry = getMapFromData(this.trips, "trip_id", tripID);
+		
+		// Check output
+		if (entry.size() > 1)
+			throw new Exception("This trip ID maps to multiple trip entries");
+		else if (entry.size() == 0)
+			throw new NullPointerException("No trips entry for the given trip ID");
+		
+		// Retrieve only component of the Set we have obtained
+		Map<String, String> trip = entry.iterator().next();
+		
+		// Retrieve the calendar entry for the given Service ID
+		Set<Map<String, String>> cal = getMapFromData(this.calendar, "service_id", entry.iterator().next().get("service_id"));
+		
+		// Check output
+		if (cal.size() > 1)
+			throw new Exception("This service ID maps to multiple calendar entries");
+		else if (cal.size() == 0)
+			throw new NullPointerException("No calendar entry for the given service ID");
+		
+		// Return only component of the Set we have obtained
+		return cal.iterator().next();
 	}
 	
 	
