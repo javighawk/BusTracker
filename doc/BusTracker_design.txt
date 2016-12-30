@@ -2,34 +2,34 @@ BusTracker V1.0
 
 Description:
 ============
-Bus tracker in Arduino for Saskatoon transit. It will check the waiting time on a desired stop and display it on a 7-segment display.
+Bus tracker in Raspberry Pi for Saskatoon transit. It will check the waiting time on a desired stop and display it on a 7-segment display.
 
 
 HARDWARE:
 =========
-Arduino Uno
-Adafruit CC3000 WiFi shield
+Raspberry Pi 3
 Adafruit 1.2" 7-segment red
-Buttons
+Buttons & Accessories
 
 
 SOFTWARE:
 =========
-Arduino IDE 1.6.8
+Eclipse
+Java JDK
 
 
 MODULES:
 ========
-
+Main: Main module. This will initialize the system
+BusStopTrackThread: Class representing a bus stop in both directions. This thread will check the bus stop in a given direction for upcoming buses
+GTFSData: This class stores the static GTFS info extracted from the agency's website (to be updated manually)
+WaitTime: Class representing a trip going through a selected bus stop
 
 LIBRARIES:
 ==========
-Wire
-Adafruit_GFX (https://github.com/adafruit/Adafruit-GFX-Library)
-Adafruit LED Backpack (https://github.com/adafruit/Adafruit_LED_Backpack)
-Adafruit CC3000 (https://github.com/adafruit/Adafruit_CC3000_Library)
+Google Transit (https://mvnrepository.com/artifact/com.google.transit/gtfs-realtime-bindings/0.0.4)
   
 
 Author: Javier Garcia
 
-Date: Jul 22, 2016
+Date: Dec 30, 2016
