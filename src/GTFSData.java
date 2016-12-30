@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.sun.org.apache.bcel.internal.generic.RET;
-
 public class GTFSData {
 
 	/* Sets of maps storing the information from the static GTFS feed */
@@ -379,9 +377,6 @@ public class GTFSData {
 			throw new Exception("This trip ID maps to multiple trip entries");
 		else if (entry.size() == 0)
 			throw new NullPointerException("No trips entry for the given trip ID");
-		
-		// Retrieve only component of the Set we have obtained
-		Map<String, String> trip = entry.iterator().next();
 		
 		// Retrieve the calendar entry for the given Service ID
 		Set<Map<String, String>> cal = getMapFromData(this.calendar, "service_id", entry.iterator().next().get("service_id"));

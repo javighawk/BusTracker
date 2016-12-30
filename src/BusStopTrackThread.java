@@ -4,7 +4,6 @@ import java.util.TreeSet;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.text.ParseException;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -67,7 +66,6 @@ public class BusStopTrackThread extends Thread {
 				e.printStackTrace();
 			}
 		}
-		System.out.println(stop_times.size());
 	}
 
 	
@@ -75,18 +73,13 @@ public class BusStopTrackThread extends Thread {
 	 * Main thread
 	 */
 	public void run(){
-		System.out.println("start thread");
 		while(true){
 			try{
-				long before = System.currentTimeMillis();
-				
 				// Get FeedMessage
 				FeedMessage feed = FeedMessage.parseFrom(Main.url.openStream());
 	
 				// Extract trip updates
 				Map<String, Integer> updates = getTripUpdates(feed);
-				
-				System.out.println(updates);
 				
 				// Get the next 3 waiting times
 				Set<WaitTime> times = getNextWaitTimes(updates, 3);
@@ -95,8 +88,6 @@ public class BusStopTrackThread extends Thread {
 					System.out.print(Main.gtfsdata.getBusNumberFromTrip(s.getTripID()) + " " + Main.gtfsdata.getTripDirection(s.getTripID()) + ": ");
 					System.out.println(getWaitingTime(s.getSchedTime().toString(), s.getDelay()));
 				}
-				
-				System.out.println(System.currentTimeMillis() - before);
 				
 				// Delay
 				Thread.sleep(BUSTRACK_PERIOD_MS);
@@ -265,7 +256,6 @@ public class BusStopTrackThread extends Thread {
 		Iterator<WaitTime> iter = aux.iterator();
 		for (int i=0 ; i<nTimes ; i++){
 			WaitTime wt = iter.next();
-			System.out.println(Main.gtfsdata.getBusNumberFromTrip(wt.getTripID()) + " " + Main.gtfsdata.getTripDirection(wt.getTripID()) + " " + wt.getTripID() + " " + wt.getDelay() + " " + wt.getSchedTime());
 			ret.add(wt);
 		}
 		
