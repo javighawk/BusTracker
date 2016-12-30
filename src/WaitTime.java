@@ -83,6 +83,16 @@ public class WaitTime {
 	public LocalTime getSchedTime(){return this.schedTime;}
 	public long getDelay(){return this.delay;}
 	
+	
+	/*
+	 * Get real arrival time
+	 * @return Arrival time as LocalTime object
+	 */
+	public LocalTime getRealTime(){
+		return this.schedTime.plusSeconds(this.delay);
+	}
+	
+	
 	/*
 	 * Get if this trip is running for a given date
 	 * @param date Date

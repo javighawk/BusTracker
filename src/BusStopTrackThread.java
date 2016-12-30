@@ -203,8 +203,14 @@ public class BusStopTrackThread extends Thread {
 			diff = now.until(schedTime, MINUTES) + 24*60;
 		}
 		
-		return diff + (int)(delay/60);
+		// Add delay
+		diff += (int)(delay/60);
 		
+		// Subtract 1 minute to wait time to avoid unwanted missed buses!
+		if (diff > 0)
+			diff -= 1;
+		
+		return diff;		
 	}
 	
 	
@@ -245,7 +251,7 @@ public class BusStopTrackThread extends Thread {
 			// Extract WaitTime object
 			WaitTime wt = map.get(trip);
 			
-			if (wt.getSchedTime().compareTo(ref) >= 0 && 
+			if (wt.getRealTime().compareTo(ref) >= 0 && 
 				this.cityCentre == wt.getCityCentre() &&
 				wt.isRunning(today))
 				aux.add(map.get(trip));
