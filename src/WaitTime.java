@@ -1,6 +1,7 @@
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class WaitTime {
@@ -20,15 +21,13 @@ public class WaitTime {
 	 * @param trip_id Trip ID
 	 * @param stop_name Name of the bus stop
 	 * @param schedTime Scheduled arrival time as String
-	 * @param calendar Map indicating the weekdays where this trip runs
-	 * @param start_end_dates Map indicating the starting and ending date of this trip
+	 * @param cal Calendar data for this trip
 	 * @throws Exception Thrown by GTFSData
 	 */
-	public WaitTime(String trip_id, String stop_name, String schedTime, Map<String, Boolean> calendar, Map<String, LocalDate> start_end_dates) throws Exception{
+	public WaitTime(String trip_id, String stop_name, String schedTime, Map<String, String> cal) throws Exception{
 		// Save parameters
 		this.trip_id = trip_id;
 		this.stop_name = stop_name;
-		this.calendar = calendar;
 
 		// Save wait time
 		try {
@@ -44,6 +43,25 @@ public class WaitTime {
 		
 		// Get direction
 		this.cityCentre = Main.gtfsdata.getTripDirection(trip_id).equals("City Centre");
+		
+		// Initialize calendar dates
+		this.calendar = new HashMap<String, Boolean>();
+		
+		// Add entries to calendar
+		this.calendar.put("monday", cal.get("monday").equals("1"));
+		this.calendar.put("tuesday", cal.get("tuesday").equals("1"));
+		this.calendar.put("wednesday", cal.get("wednesday").equals("1"));
+		this.calendar.put("thursday", cal.get("thursday").equals("1"));
+		this.calendar.put("friday", cal.get("friday").equals("1"));
+		this.calendar.put("saturday", cal.get("saturday").equals("1"));
+		this.calendar.put("sunday", cal.get("sunday").equals("1"));
+		
+		// Initialize start/end date
+		this.start_end_dates = new HashMap<String, LocalDate>();
+		
+		// Add entries
+		this.start_end_dates.put("start_date", LocalDate.parse(cal.get("start_date")));
+		this.start_end_dates.put("end_date", LocalDate.parse(cal.get("end_date")));
 	}
 
 	
@@ -62,7 +80,25 @@ public class WaitTime {
 	public boolean getCityCentre(){return this.cityCentre;}
 	public LocalTime getSchedTime(){return this.schedTime;}
 	public long getDelay(){return this.delay;}
-	public boolean isRunningToday(String weekday){return this.calendar.get(weekday);}
+	
+	/**
+	 * Get if this trip is running for a given date
+	 * @param date Date
+	 * @return
+	 */
+	public boolean isRunning(LocalDate date){
+		// Check if date is within start/end dates
+		if (date.compareTo(this.start_end_dates.get("start_date")) >= 0 &&
+			date.compareTo(this.start_end_dates.get("end_date")) <= 0){
+			
+			// Get weekday
+			String weekday = date.getDayOfWeek().name().toLowerCase();
+			
+			return this.calendar.get(weekday);
+		}
+		
+		return false;
+	}
 	
 	
 	/* Setters */
