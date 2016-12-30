@@ -329,7 +329,7 @@ public class GTFSData {
 	}
 	
 	
-	/**
+	/*
 	 * Get the working days for a given service ID
 	 * @param serciceID Service ID as a String
 	 * @return Map containing true on the days where the service is working
