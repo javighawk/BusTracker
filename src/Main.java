@@ -1,5 +1,6 @@
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Comparator;
 
 public class Main {
 	
@@ -10,6 +11,12 @@ public class Main {
 	
 	/* Global variables */
 	public static BusStopTrackThread bStop_22nd;
+	public static Comparator<WaitTime> waitTimeComp = new Comparator<WaitTime>(){
+		@Override
+		public int compare(WaitTime o1, WaitTime o2) {
+			return o1.getSchedTime().plusSeconds(o1.getDelay()).compareTo(o2.getSchedTime().plusSeconds(o2.getDelay()));
+		}		
+	};
 	
 	/* Shared variables */
 	public static GTFSData gtfsdata = new GTFSData();
@@ -20,6 +27,8 @@ public class Main {
 	 * Initialize bus tracker 
 	 */
 	public static void initialize(){
+		System.out.println("Init");
+		
 		// Load GTFS data
 		gtfsdata.parseFromPath(gtfsPath);
 		
@@ -32,6 +41,8 @@ public class Main {
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
+		
+		System.out.println("End init");
 	}
 	
 	

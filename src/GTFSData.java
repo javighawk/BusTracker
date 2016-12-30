@@ -1,12 +1,16 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import com.sun.org.apache.bcel.internal.generic.RET;
 
 public class GTFSData {
 
@@ -16,6 +20,8 @@ public class GTFSData {
 	public Set<Map<String, String>> stop_times = new HashSet<Map<String, String>>();
 	public Set<Map<String, String>> stops = new HashSet<Map<String, String>>();
 	public Set<Map<String, String>> trips = new HashSet<Map<String, String>>();
+	public Set<Map<String, String>> calendar = new HashSet<Map<String, String>>();
+	public Set<Map<String, String>> calendar_dates = new HashSet<Map<String, String>>();
 	
 	
 	/*
@@ -28,7 +34,9 @@ public class GTFSData {
 		parse(Paths.get(path, "routes.txt").toString(), this.routes);
 		parse(Paths.get(path, "stop_times.txt").toString(), this.stop_times);
 		parse(Paths.get(path, "stops.txt").toString(), this.stops);
-		parse(Paths.get(path, "trips.txt").toString(), this.trips);		
+		parse(Paths.get(path, "trips.txt").toString(), this.trips);
+		parse(Paths.get(path, "calendar.txt").toString(), this.calendar);
+		parse(Paths.get(path, "calendar_dates.txt").toString(), this.calendar_dates);
 	}
 	
 	
@@ -139,6 +147,60 @@ public class GTFSData {
 	
 	
 	/*
+	 * Get bus stop ID for a given trip and stop name
+	 * @param busStopName Name of the bus stop
+	 * @param tripID Trip id as a String
+	 * @return Stop ID as a String
+	 * @throws Exception if a trip ID and bus name match more than one bus stop ID
+	 */
+	public String getBusStopID(String busStopName, String tripID) throws Exception{
+		// Get bus stop IDs for the given bus stop name
+		Set<String> busStopIDs = getBusStopIDs(busStopName);
+		
+		// Iterate through all the bus stop IDs
+		for (String s : busStopIDs) {
+			// Create map to use on query
+			Map<String, String> key = new HashMap<String, String>();
+			key.put("trip_id", tripID);
+			key.put("stop_id", s);
+			
+			// Get trip entries with the given trip ID and this bus stop ID
+			Set<Map<String, String>> trips = getMapFromData(this.stop_times, key);
+			
+			// Check length
+			if (trips.size() > 1)
+				throw new Exception("More than one stop id match the given trip ID and bus stop name");
+			else if (trips.size() == 1){
+				return trips.iterator().next().get("stop_id");
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	/*
+	 * Retrieve stop times entries of all trips going through a given bus stop
+	 * @param busStopName Name of the bus stop as String
+	 * @return Set of entries from stop_times that go through the given bus stop
+	 */
+	public Set<Map<String, String>> getBusStopTimes(String busStopName){
+		// Initialize returning set
+		Set<Map<String, String>> ret = new HashSet<Map<String, String>>();
+		
+		// Get stop IDs matching the given bus stop name
+		Set<String> stop_id = getBusStopIDs(busStopName);
+		
+		// Iterate through the stop_ids
+		for (String sid : stop_id)
+			// Retrieve the stop times for the given stop id and add it to returning set
+			ret.addAll(getMapFromData(this.stop_times, "stop_id", sid));
+			
+		return ret;
+	}
+	
+	
+	/*
 	 * Get trip direction given a trip ID
 	 * @param tripID Trip ID in string
 	 * @return Trip direction as a string as specified in the GTFS static data
@@ -161,12 +223,34 @@ public class GTFSData {
 	
 	
 	/*
+	 * Retrieve the bus line number given the trip ID
+	 * @param trip_id Trip id as a String
+	 * @return Bus line number as a String
+	 * @throws Exception If the given route ID maps to more than 1 route or trip
+	 */
+	public String getBusNumberFromTrip(String tripID) throws Exception{
+		// Run query
+		Set<Map<String, String>> m2 = getMapFromData(this.trips, "trip_id", tripID);
+		
+		// Check if we have retrieved more than one Trip
+		if (m2.size() > 1)
+			throw new Exception("More than one route matches the given route ID");
+		else if (m2.size() == 0){
+			return null;
+		}
+		
+		// Get the line number given the route ID extracted
+		return getBusNumberFromRoute(m2.iterator().next().get("route_id"));
+	}
+	
+	
+	/*
 	 * Get route number given a route ID
 	 * @param routeID Route ID in string
 	 * @return Route number as a string as specified in the GTFS static data
 	 * @throws Exception If the given route ID maps to more than 1 route
 	 */
-	public String getRouteNumber(String routeID) throws Exception{
+	public String getBusNumberFromRoute(String routeID) throws Exception{
 		// Run query
 		Set<Map<String, String>> m2 = getMapFromData(this.routes, "route_id", routeID);
 		
@@ -189,7 +273,7 @@ public class GTFSData {
 	 * @return Scheduled arrival time as String
 	 * @throws Exception If the given stop ID and trip ID maps to more than 1 scheduled time
 	 */
-	public String getScheduledArrivalTime(String tripID, String stopID) throws Exception{
+	public String getScheduledArrivalTimeFromStopID(String tripID, String stopID) throws Exception{
 		// Create a HashMap to execute query
 		Map<String, String> m1 = new HashMap<String, String>();
 		m1.put("trip_id", tripID);
@@ -207,6 +291,76 @@ public class GTFSData {
 		
 		// Return scheduled time as String
 		return m2.iterator().next().get("arrival_time");
+	}
+	
+	
+	/*
+	 * Get scheduled arrival time of bus given trip ID and a bus name
+	 * @param tripID Trip ID as String
+	 * @param stopName Stop name as String
+	 * @return Scheduled arrival time as a LocalTime object
+	 * @throws Exception If the given stop ID and trip ID maps to more than 1 scheduled time
+	 */
+	public LocalTime getScheduledArrivalTimeFromStopName(String tripID, String stopName) throws Exception{
+		// Get stop IDs for the given stop name
+		Set<String> stopIDs = getBusStopIDs(stopName);
+		
+		// Iterate through all the stop IDs
+		for (String stopID : stopIDs) {
+			// Get scheduled time
+			String sched = getScheduledArrivalTimeFromStopID(tripID, stopID);
+			
+			if (!(sched == null)){
+				try {
+					// Parse scheduled arrival (this is in the bus agency's time zone)
+					return LocalTime.parse(sched);					
+					
+				} catch (DateTimeParseException e) {
+					// Extract the hour value and subtract "24"
+					int hour = Integer.parseInt(sched.substring(0,2)) - 24;
+					
+					// Parse scheduled arrival (this is in the bus agency's time zone)
+					return LocalTime.parse(String.format("%02d", hour) + sched.substring(2));
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	/**
+	 * Get the working days for a given service ID
+	 * @param serciceID Service ID as a String
+	 * @return Map containing true on the days where the service is working
+	 * @throws Exception If the given serviceID maps to multipe or none entries on the calendar table
+	 */
+	public Map<String, Boolean> getDatesFromServiceID(String serviceID) throws Exception{
+		// Retrieve the calendar entry for the given Service ID
+		Set<Map<String, String>> entry = getMapFromData(this.calendar, "service_id", serviceID);
+		
+		// Check output
+		if (entry.size() > 1)
+			throw new Exception("This service ID maps to multiple calendar entries");
+		else if (entry.size() == 0)
+			throw new NullPointerException("No calendar entry for the given service ID");
+		
+		// Retrieve only component of the Set we have obtained
+		Map<String, String> cal = entry.iterator().next();
+		
+		// Initialize returning Map
+		Map<String, Boolean> ret = new HashMap<String, Boolean>();
+		
+		// Add values to ret
+		ret.put("monday", Boolean.parseBoolean(cal.get("monday")));
+		ret.put("tuesday", Boolean.parseBoolean(cal.get("tuesday")));
+		ret.put("wednesday", Boolean.parseBoolean(cal.get("wednesday")));
+		ret.put("thursday", Boolean.parseBoolean(cal.get("thursday")));
+		ret.put("friday", Boolean.parseBoolean(cal.get("friday")));
+		ret.put("saturday", Boolean.parseBoolean(cal.get("saturday")));
+		ret.put("sunday", Boolean.parseBoolean(cal.get("sunday")));
+		
+		return ret;
 	}
 	
 	
