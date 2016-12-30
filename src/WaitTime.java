@@ -81,7 +81,7 @@ public class WaitTime {
 	public LocalTime getSchedTime(){return this.schedTime;}
 	public long getDelay(){return this.delay;}
 	
-	/**
+	/*
 	 * Get if this trip is running for a given date
 	 * @param date Date
 	 * @return
