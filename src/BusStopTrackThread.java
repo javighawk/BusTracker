@@ -52,7 +52,11 @@ public class BusStopTrackThread extends Thread {
 		for(Map<String, String> wt : Main.gtfsdata.getBusStopTimes(busStopName)){
 			// Add a new WaitTime object
 			try {
-				stop_times.put(wt.get("trip_id"), new WaitTime(wt.get("trip_id"), this.busStopName, wt.get("arrival_time")));
+				stop_times.put(wt.get("trip_id"), 
+								new WaitTime(wt.get("trip_id"), 
+											this.busStopName, 
+											wt.get("arrival_time"),
+											Main.gtfsdata.getDatesFromServiceID(wt.get("service_id"))));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
