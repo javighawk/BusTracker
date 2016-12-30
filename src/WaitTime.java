@@ -85,6 +85,23 @@ public class WaitTime {
 		// Save wait time
 		this.calendar = calendar;
 	}
+	
+	
+	/*
+	 * Constructor
+	 * @param trip_id Trip ID
+	 * @param stop_name Name of the bus stop
+	 * @param schedTime Scheduled arrival time as String
+	 * @param calendar Map indicating the weekdays where this trip runs
+	 * @throws Exception Thrown by GTFSData
+	 */
+	public WaitTime(String trip_id, String stop_name, String schedTime, Map<String, Boolean> calendar) throws Exception{
+		// Call constructor
+		this(trip_id, stop_name, schedTime);
+		
+		// Save wait time
+		this.calendar = calendar;
+	}
 
 	
 	/*
