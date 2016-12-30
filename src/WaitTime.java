@@ -1,3 +1,4 @@
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
@@ -9,6 +10,7 @@ public class WaitTime {
 	private String stop_name = null;
 	private boolean cityCentre;
 	private Map<String, Boolean> calendar;
+	private Map<String, LocalDate> start_end_dates;
 	private LocalTime schedTime;
 	private long delay = 0;
 
@@ -17,29 +19,17 @@ public class WaitTime {
 	 * Constructor
 	 * @param trip_id Trip ID
 	 * @param stop_name Name of the bus stop
+	 * @param schedTime Scheduled arrival time as String
+	 * @param calendar Map indicating the weekdays where this trip runs
+	 * @param start_end_dates Map indicating the starting and ending date of this trip
 	 * @throws Exception Thrown by GTFSData
 	 */
-	public WaitTime(String trip_id, String stop_name) throws Exception{
+	public WaitTime(String trip_id, String stop_name, String schedTime, Map<String, Boolean> calendar, Map<String, LocalDate> start_end_dates) throws Exception{
 		// Save parameters
 		this.trip_id = trip_id;
 		this.stop_name = stop_name;
-		
-		// Get direction
-		this.cityCentre = Main.gtfsdata.getTripDirection(trip_id).equals("City Centre");
-	}
-	
-	
-	/*
-	 * Constructor
-	 * @param trip_id Trip ID
-	 * @param stop_name Name of the bus stop
-	 * @param schedTime Scheduled arrival time as String
-	 * @throws Exception Thrown by GTFSData
-	 */
-	public WaitTime(String trip_id, String stop_name, String schedTime) throws Exception{
-		// Call constructor
-		this(trip_id, stop_name);
-		
+		this.calendar = calendar;
+
 		// Save wait time
 		try {
 			// Parse scheduled arrival (this is in the bus agency's time zone)
@@ -51,56 +41,9 @@ public class WaitTime {
 			// Parse scheduled arrival (this is in the bus agency's time zone)
 			this.schedTime = LocalTime.parse(String.format("%02d", hour) + schedTime.substring(2));
 		}
-	}
-	
-	
-	/*
-	 * Constructor
-	 * @param trip_id Trip ID
-	 * @param stop_name Name of the bus stop
-	 * @param schedTime Scheduled arrival time as LocaTime object
-	 * @throws Exception Thrown by GTFSData
-	 */
-	public WaitTime(String trip_id, String stop_name, LocalTime schedTime) throws Exception{
-		// Call constructor
-		this(trip_id, stop_name);
 		
-		// Save wait time
-		this.schedTime = schedTime;
-	}
-	
-	
-	/*
-	 * Constructor
-	 * @param trip_id Trip ID
-	 * @param stop_name Name of the bus stop
-	 * @param schedTime Scheduled arrival time as LocaTime object
-	 * @param calendar Map indicating the weekdays where this trip runs
-	 * @throws Exception Thrown by GTFSData
-	 */
-	public WaitTime(String trip_id, String stop_name, LocalTime schedTime, Map<String, Boolean> calendar) throws Exception{
-		// Call constructor
-		this(trip_id, stop_name, schedTime);
-		
-		// Save wait time
-		this.calendar = calendar;
-	}
-	
-	
-	/*
-	 * Constructor
-	 * @param trip_id Trip ID
-	 * @param stop_name Name of the bus stop
-	 * @param schedTime Scheduled arrival time as String
-	 * @param calendar Map indicating the weekdays where this trip runs
-	 * @throws Exception Thrown by GTFSData
-	 */
-	public WaitTime(String trip_id, String stop_name, String schedTime, Map<String, Boolean> calendar) throws Exception{
-		// Call constructor
-		this(trip_id, stop_name, schedTime);
-		
-		// Save wait time
-		this.calendar = calendar;
+		// Get direction
+		this.cityCentre = Main.gtfsdata.getTripDirection(trip_id).equals("City Centre");
 	}
 
 	
