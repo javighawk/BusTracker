@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.lang.Exception;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
@@ -37,7 +38,7 @@ public class BusStopTrackThread extends Thread {
 	 */
 	public BusStopTrackThread(String busStopName, String url){
 		// Set default argument values
-		this.cityCentre = false;
+		this.cityCentre = true;
 		this.BUSTRACK_PERIOD_MS = 10000;
 		
 		// Save bus stop name
@@ -88,6 +89,8 @@ public class BusStopTrackThread extends Thread {
 					System.out.print(Main.gtfsdata.getBusNumberFromTrip(s.getTripID()) + " " + Main.gtfsdata.getTripDirection(s.getTripID()) + ": ");
 					System.out.println(getWaitingTime(s.getSchedTime().toString(), s.getDelay()));
 				}
+				
+				System.out.println("----------");
 				
 				// Delay
 				Thread.sleep(BUSTRACK_PERIOD_MS);
@@ -222,8 +225,8 @@ public class BusStopTrackThread extends Thread {
 	 * @throws Exception from GTFS query
 	 */
 	private SortedSet<WaitTime> getNextWaitTimes(Map<String, Integer> delay, int nTimes) throws Exception{		
-		// Get today's date
-		LocalDate today = LocalDate.now(ZoneId.of(Main.gtfsdata.getTimeZone()));
+		// Get today's date (force day change at 3AM instead of midnight)
+		LocalDate today = LocalDateTime.now(ZoneId.of(Main.gtfsdata.getTimeZone())).minusHours(3).toLocalDate();
 		
 		// Make a copy of the stop_trip Map
 		Map<String, WaitTime> map = new HashMap<String, WaitTime>(this.stop_times);
