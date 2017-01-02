@@ -75,13 +75,21 @@ public class BusStopTrackThread extends Thread {
 	 */
 	public void run(){
 		while(true){
+			// Declare updates
+			Map<String, Integer> updates = new HashMap<String, Integer>();
+			
 			try{
 				// Get FeedMessage
 				FeedMessage feed = FeedMessage.parseFrom(Main.url.openStream());
 	
 				// Extract trip updates
-				Map<String, Integer> updates = getTripUpdates(feed);
-				
+				updates = getTripUpdates(feed);
+			} 
+			catch (MalformedURLException e) {e.printStackTrace();} 
+			catch (IOException e) {} 
+			catch (Exception e){e.printStackTrace();}
+			
+			try{				
 				// Get the next 3 waiting times
 				Set<WaitTime> times = getNextWaitTimes(updates, 3);
 				
@@ -94,10 +102,7 @@ public class BusStopTrackThread extends Thread {
 				
 				// Delay
 				Thread.sleep(BUSTRACK_PERIOD_MS);
-			} 
-			catch (MalformedURLException e) {e.printStackTrace();} 
-			catch (IOException e) {} 
-			catch (Exception e) {e.printStackTrace();}
+			} catch (Exception e) {e.printStackTrace();}
 		}
 	}
 	
