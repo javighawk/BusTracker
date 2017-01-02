@@ -54,3 +54,9 @@ Temporary Items
 
 # GTFS data
 gtfs/*
+
+# External dependencies
+src/ext/*
+
+# Jar files
+*.jar
