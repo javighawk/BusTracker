@@ -27,7 +27,7 @@ WaitTime: Class representing a trip going through a selected bus stop
 
 LIBRARIES:
 ==========
-Google Transit (https://mvnrepository.com/artifact/com.google.transit/gtfs-realtime-bindings/0.0.4)
+Google Transit (http://www.java2s.com/Code/Jar/o/Downloadonebusawaygtfsrealtimeapi110jar.htm)
   
 
 Author: Javier Garcia
