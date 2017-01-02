@@ -15,7 +15,7 @@ Buttons & Accessories
 SOFTWARE:
 =========
 Eclipse
-Java JDK
+Java 8 JDK
 
 
 MODULES:
@@ -27,7 +27,9 @@ WaitTime: Class representing a trip going through a selected bus stop
 
 LIBRARIES:
 ==========
-Google Transit (http://www.java2s.com/Code/Jar/o/Downloadonebusawaygtfsrealtimeapi110jar.htm)
+Google Transit (Download OneBusAway Jar libraries at http://www.java2s.com/Code/Jar/o/Downloadonebusawaygtfsrealtimeapi110jar.htm)
+Google Protobuf (Download Jar at https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java/2.4.1)
+
   
 
 Author: Javier Garcia
