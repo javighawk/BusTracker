@@ -25,8 +25,9 @@ public class Main {
 	
 	/*
 	 * Initialize bus tracker 
+	 * @param gtfsPath Path to the static GTFS files
 	 */
-	public static void initialize(){
+	public static void initialize(String gtfsPath){
 		// Load GTFS data
 		gtfsdata.parseFromPath(gtfsPath);
 		
@@ -44,11 +45,11 @@ public class Main {
 	
 	/*
 	 * Main function
-	 * @param args Arguments
+	 * @param args Arguments. Path to the GTFS static data
 	 */
 	public static void main(String[] args){
 		// Initialize system
-		initialize();
+		initialize(args[0]);
 		
 		// Start thread
 		bStop_22nd.start();
