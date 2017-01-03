@@ -29,6 +29,7 @@ public class BusStopTrackThread extends Thread {
 	private Set<String> stop_ids;
 	private Map<String, WaitTime> stop_times;
 	private long BUSTRACK_PERIOD_MS;
+	private WaitTime[] nextBuses;
 
 	
 	/*
@@ -67,6 +68,13 @@ public class BusStopTrackThread extends Thread {
 				e.printStackTrace();
 			}
 		}
+		
+		// Initialize the array with the upcoming buses
+		try {
+			this.nextBuses = (WaitTime[]) getNextWaitTimes(new HashMap<String, Integer>(), Main.numOfBusesToShow).toArray();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	
@@ -91,14 +99,7 @@ public class BusStopTrackThread extends Thread {
 			
 			try{				
 				// Get the next 3 waiting times
-				Set<WaitTime> times = getNextWaitTimes(updates, 3);
-				
-				for (WaitTime s : times) {
-					System.out.print(Main.gtfsdata.getBusNumberFromTrip(s.getTripID()) + " " + Main.gtfsdata.getTripDirection(s.getTripID()) + ": ");
-					System.out.println(getWaitingTime(s.getSchedTime().toString(), s.getDelay()));
-				}
-				
-				System.out.println("----------");
+				this.nextBuses = (WaitTime[]) getNextWaitTimes(updates, 3).toArray();
 				
 				// Delay
 				Thread.sleep(BUSTRACK_PERIOD_MS);
@@ -130,6 +131,16 @@ public class BusStopTrackThread extends Thread {
 	 */
 	public void switchCityCentreDirection(){
 		this.cityCentre = !this.cityCentre;
+	}
+	
+	
+	/*
+	 * Get the "index" upcoming bus
+	 * @param index
+	 * @return
+	 */
+	public WaitTime getNextBus(int index){
+		return this.nextBuses[index];
 	}
 	
 	
