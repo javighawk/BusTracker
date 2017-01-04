@@ -1,5 +1,8 @@
+import static java.time.temporal.ChronoUnit.MINUTES;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
@@ -111,6 +114,49 @@ public class WaitTime {
 		
 		return false;
 	}
+	
+	
+	/*
+	 * Get waiting time given a scheduled arrival and a delay
+	 * @param schedArrival Scheduled arrival of the bus
+	 * @param delay Delay in seconds
+	 * @return 
+	 */
+	public long getWaitingTime(String schedArrival, long delay){
+		// Get current time in the Bus agency local time
+		LocalTime now = LocalTime.now(ZoneId.of(Main.gtfsdata.getTimeZone()));
+		
+		// Initialize time difference in minutes
+		long diff;
+		
+		try {
+			// Parse scheduled arrival (this is in the bus agency's time zone)
+			LocalTime schedTime = LocalTime.parse(schedArrival);					
+			
+			// Get the difference in time
+			diff = now.until(schedTime, MINUTES);
+			
+		} catch (DateTimeParseException e) {
+			// Extract the hour value and subtract "24"
+			int hour = Integer.parseInt(schedArrival.substring(0,2)) - 24;
+			
+			// Parse scheduled arrival (this is in the bus agency's time zone)
+			LocalTime schedTime = LocalTime.parse(String.format("%02d", hour) + schedArrival.substring(2));
+			
+			// Get the difference in time (add the 24 hours that we subtracted before)
+			diff = now.until(schedTime, MINUTES) + 24*60;
+		}
+		
+		// Add delay
+		diff += (int)(delay/60);
+		
+		// Subtract 1 minute to wait time to avoid unwanted missed buses!
+		if (diff > 0)
+			diff -= 1;
+		
+		return diff;		
+	}
+	
 	
 	
 	/* Setters */
