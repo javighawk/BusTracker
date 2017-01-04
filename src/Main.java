@@ -38,7 +38,7 @@ public class Main {
 		
 		// Initialize bus stop objects and add them to the set
 		for (String name : bStop_names)
-			bStops_set.add(new BusStopTrackThread(name, gtfsURL));
+			bStops_set.add(new BusStopTrackThread(name));
 		
 		// Convert to array
 		bStops = (BusStopTrackThread[]) bStops_set.toArray();

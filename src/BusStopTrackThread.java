@@ -35,9 +35,8 @@ public class BusStopTrackThread extends Thread {
 	/*
 	 * Constructor
 	 * @param busStopName Name of the bus stop to be tracked
-	 * @param url URL pointing to the Trip Update data
 	 */
-	public BusStopTrackThread(String busStopName, String url){
+	public BusStopTrackThread(String busStopName){
 		// Set default argument values
 		this.cityCentre = true;
 		this.BUSTRACK_PERIOD_MS = 10000;
