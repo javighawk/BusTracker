@@ -26,7 +26,6 @@ public class BusStopTrackThread extends Thread {
 	private Set<String> stop_ids;
 	private Map<String, WaitTime> stop_times;
 	private long BUSTRACK_PERIOD_MS;
-	private WaitTime[] nextBuses;
 
 	
 	/*
@@ -65,9 +64,9 @@ public class BusStopTrackThread extends Thread {
 			}
 		}
 		
-		// Initialize the array with the upcoming buses
+		// Update upcoming buses information
 		try {
-			this.nextBuses = (WaitTime[]) getNextWaitTimes(new HashMap<String, Integer>(), Display.numOfBusesToShow).toArray();
+			Main.disp.updateWaitTime(this.busStopName, getNextWaitTimes(new HashMap<String, Integer>(), Display.numOfBusesToShow));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -94,8 +93,8 @@ public class BusStopTrackThread extends Thread {
 			catch (Exception e){e.printStackTrace();}
 			
 			try{				
-				// Get the next 3 waiting times
-				this.nextBuses = (WaitTime[]) getNextWaitTimes(updates, 3).toArray();
+				// Update upcoming buses information
+				Main.disp.updateWaitTime(this.busStopName, getNextWaitTimes(updates, Display.numOfBusesToShow));
 				
 				// Delay
 				Thread.sleep(BUSTRACK_PERIOD_MS);
@@ -127,16 +126,6 @@ public class BusStopTrackThread extends Thread {
 	 */
 	public void switchCityCentreDirection(){
 		this.cityCentre = !this.cityCentre;
-	}
-	
-	
-	/*
-	 * Get the "index" upcoming bus
-	 * @param index
-	 * @return
-	 */
-	public WaitTime getNextBus(int index){
-		return this.nextBuses[index];
 	}
 	
 	
@@ -194,7 +183,7 @@ public class BusStopTrackThread extends Thread {
 	 * @return Sorted set of WaitTime objects
 	 * @throws Exception from GTFS query
 	 */
-	private SortedSet<WaitTime> getNextWaitTimes(Map<String, Integer> delay, int nTimes) throws Exception{		
+	private WaitTime[] getNextWaitTimes(Map<String, Integer> delay, int nTimes) throws Exception{		
 		// Get today's date (force day change at 3AM instead of midnight)
 		LocalDate today = LocalDateTime.now(ZoneId.of(Main.gtfsdata.getTimeZone())).minusHours(3).toLocalDate();
 		
@@ -213,31 +202,36 @@ public class BusStopTrackThread extends Thread {
 			}
 		}
 
-		// Make a set of the initial map with the future trips going to the selected direction running today
-		SortedSet<WaitTime> aux = new TreeSet<WaitTime>(Main.waitTimeComp);
+		// Make a set of the initial map with the future trips going on both directions running today
+		SortedSet<WaitTime> wt_cityCentre_true = new TreeSet<WaitTime>(Main.waitTimeComp);
+		SortedSet<WaitTime> wt_cityCentre_false = new TreeSet<WaitTime>(Main.waitTimeComp);
 		
 		// Create a reference WaitTime object
 		LocalTime ref = LocalTime.now(ZoneId.of(Main.gtfsdata.getTimeZone()));
-
+		
 		// Iterate through all the map entries
 		for (String trip : map.keySet()) {
 			// Extract WaitTime object
 			WaitTime wt = map.get(trip);
 			
-			if (wt.getRealTime().compareTo(ref) >= 0 && 
-				this.cityCentre == wt.getCityCentre() &&
-				wt.isRunning(today))
-				aux.add(map.get(trip));
+			if (wt.getRealTime().compareTo(ref) >= 0 && wt.isRunning(today)){
+				// Check direction
+				if (wt.getCityCentre())
+					wt_cityCentre_true.add(map.get(trip));
+				else
+					wt_cityCentre_false.add(map.get(trip));
+			}
 		}
 		
-		// Return the first nTimes objects in the sorted set
+		// Return the first nTimes objects in the sorted set for each of the directions
 		SortedSet<WaitTime> ret = new TreeSet<WaitTime>(Main.waitTimeComp);
-		Iterator<WaitTime> iter = aux.iterator();
+		Iterator<WaitTime> iter_cityCentre_true = wt_cityCentre_true.iterator();
+		Iterator<WaitTime> iter_cityCentre_false = wt_cityCentre_false.iterator();
 		for (int i=0 ; i<nTimes ; i++){
-			WaitTime wt = iter.next();
-			ret.add(wt);
+			ret.add(iter_cityCentre_true.next());
+			ret.add(iter_cityCentre_false.next());
 		}
 		
-		return ret;
+		return (WaitTime[]) ret.toArray();
 	}
 }

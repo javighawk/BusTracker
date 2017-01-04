@@ -22,6 +22,7 @@ public class Main {
 	
 	/* Shared variables */
 	public static GTFSData gtfsdata = new GTFSData();
+	public static Display disp;
 	public static URL url;
 	
 	
