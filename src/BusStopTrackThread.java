@@ -71,7 +71,7 @@ public class BusStopTrackThread extends Thread {
 		
 		// Initialize the array with the upcoming buses
 		try {
-			this.nextBuses = (WaitTime[]) getNextWaitTimes(new HashMap<String, Integer>(), Main.numOfBusesToShow).toArray();
+			this.nextBuses = (WaitTime[]) getNextWaitTimes(new HashMap<String, Integer>(), Display.numOfBusesToShow).toArray();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

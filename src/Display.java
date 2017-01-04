@@ -8,6 +8,7 @@ public class Display {
 	private int busStopDisp_idx = 0;
 	private int upcomingBusDisp_idx = 0;
 	private boolean cityCentreDisp = true;
+	public static int numOfBusesToShow = 3;
 	
 	/* Adafruit LED Backpack I2C address */
 	private int i2c_addr = 0x70;
@@ -117,7 +118,7 @@ public class Display {
 	 * Display next upcoming bus waiting time
 	 */
 	public void dispNextUpcomingBus(){
-		this.upcomingBusDisp_idx = (this.upcomingBusDisp_idx + 1) % Main.numOfBusesToShow;
+		this.upcomingBusDisp_idx = (this.upcomingBusDisp_idx + 1) % numOfBusesToShow;
 	}
 	
 	

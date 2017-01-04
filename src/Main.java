@@ -10,7 +10,6 @@ public class Main {
 	public static String gtfsPath = "gtfs/";
 	public static String gtfsURL = "http://apps2.saskatoon.ca/app/data/TripUpdate/TripUpdates.pb";
 	public static String[] bStop_names = {"22nd Street / Avenue M"};
-	public static int numOfBusesToShow = 3;
 	
 	/* Global variables */
 	public static BusStopTrackThread[] bStops;
