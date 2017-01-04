@@ -4,6 +4,11 @@ import ext.raspiMatrix.AdafruitLEDBackPack;
 
 public class Display {
 	
+	/* Displaying variables */
+	private int busStopDisp_idx = 0;
+	private int upcomingBusDisp_idx = 0;
+	private boolean cityCentreDisp = true;
+	
 	/* Adafruit LED Backpack I2C address */
 	private int i2c_addr = 0x70;
 	
@@ -64,6 +69,12 @@ public class Display {
 	}
 	
 	
+	/*
+	 * Show waiting time and the associated bus line
+	 * @param busLine Bus number
+	 * @param waitTime Waiting time
+	 * @param waitTimeIndex 0 if it's the next upcoming bus, 1 if it's the following bus, etc.
+	 */
 	public void showWaitTime(int busLine, int waitTime, int waitTimeIndex){
 	    // Show the index of the wait time in the semicolon on the left
 	    reg[2] = (byte) ((reg[2] & 0xF3) | waitTimeIndex << 2);
@@ -91,5 +102,29 @@ public class Display {
 	    }
 	    
 	    this.write();
+	}
+	
+	
+	/*
+	 * Display the next bus stop
+	 */
+	public void dispNextBusStop(){
+		this.busStopDisp_idx = (this.busStopDisp_idx + 1) % Main.bStop_names.length;
+	}
+	
+	
+	/*
+	 * Display next upcoming bus waiting time
+	 */
+	public void dispNextUpcomingBus(){
+		this.upcomingBusDisp_idx = (this.upcomingBusDisp_idx + 1) % Main.numOfBusesToShow;
+	}
+	
+	
+	/*
+	 * Display the city centre direction if it was not being displayed already and vice versa
+	 */
+	public void dispOppositeDirection(){
+		this.cityCentreDisp = !this.cityCentreDisp;
 	}
 }
