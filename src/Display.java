@@ -2,7 +2,7 @@ import java.io.IOException;
 
 import ext.raspiMatrix.AdafruitLEDBackPack;
 
-public class Display {
+public class Display extends Thread{
 	
 	/* Displaying variables */
 	private int busStopDisp_idx = 0;
@@ -43,6 +43,21 @@ public class Display {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	/*
+	 * Run method
+	 */
+	public void run(){
+		while(true){
+			try {
+				this.showWaitTime();
+				Thread.sleep(1000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}	
+		}
+	}
 
 
 	/*
@@ -71,17 +86,30 @@ public class Display {
 	
 	
 	/*
-	 * Show waiting time and the associated bus line
-	 * @param busLine Bus number
-	 * @param waitTime Waiting time
-	 * @param waitTimeIndex 0 if it's the next upcoming bus, 1 if it's the following bus, etc.
+	 * Update waiting time of the showing bus
+	 * @throws NumberFormatException Exception when parsing bus line
+	 * @throws Exception Thrown by WaitTime
 	 */
-	public void showWaitTime(int busLine, int waitTime, int waitTimeIndex){
+	public void showWaitTime() throws Exception{
+		// Retrieve the WaitTime object representing the displaying bus
+		WaitTime wt = Main.bStops.get(this.busStopDisp_idx).getUpcomingBus(this.upcomingBusDisp_idx, this.cityCentreDisp);
+		
+		// Get the bus line number
+		int busLine = 0;
+		try{
+			busLine = Integer.parseInt(Main.gtfsdata.getBusNumberFromTrip(wt.getTripID()));
+		} catch(NumberFormatException e){
+			e.printStackTrace();
+		}
+		
+		// Get waiting time
+		long waitTime = wt.getWaitingTime();
+
 	    // Show the index of the wait time in the semicolon on the left
-	    reg[2] = (byte) ((reg[2] & 0xF3) | waitTimeIndex << 2);
+	    reg[2] = (byte) ((reg[2] & 0xF3) | upcomingBusDisp_idx << 2);
 
 	    // Show bus line
-	    if( busLine == 0 ){
+	    if( busLine == 0 || waitTime < 0 ){
 	        this.clear();
 	        return;
 	    }
@@ -96,10 +124,10 @@ public class Display {
 	    // Show wait time (only if less than 100 minutes)
 	    if( waitTime < 10 ){
 	        reg[3] = 0;
-	        reg[4] = (byte) numDisplay[waitTime];
+	        reg[4] = (byte) numDisplay[(int) waitTime];
 	    }else if( waitTime < 100 ){
 	        reg[3] = (byte) numDisplay[(int)(waitTime/10)];
-	        reg[4] = (byte) numDisplay[waitTime % 10];
+	        reg[4] = (byte) numDisplay[(int) (waitTime % 10)];
 	    }
 	    
 	    this.write();
@@ -109,23 +137,26 @@ public class Display {
 	/*
 	 * Display the next bus stop
 	 */
-	public void dispNextBusStop(){
+	public void dispNextBusStop() throws Exception{
 		this.busStopDisp_idx = (this.busStopDisp_idx + 1) % Main.bStop_names.length;
+		this.showWaitTime();
 	}
 	
 	
 	/*
 	 * Display next upcoming bus waiting time
 	 */
-	public void dispNextUpcomingBus(){
+	public void dispNextUpcomingBus() throws Exception{
 		this.upcomingBusDisp_idx = (this.upcomingBusDisp_idx + 1) % numOfBusesToShow;
+		this.showWaitTime();
 	}
 	
 	
 	/*
 	 * Display the city centre direction if it was not being displayed already and vice versa
 	 */
-	public void dispOppositeDirection(){
+	public void dispOppositeDirection() throws Exception{
 		this.cityCentreDisp = !this.cityCentreDisp;
+		this.showWaitTime();
 	}
 }

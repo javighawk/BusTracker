@@ -1,8 +1,8 @@
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 public class Main {
 	
@@ -12,7 +12,7 @@ public class Main {
 	public static String[] bStop_names = {"22nd Street / Avenue M"};
 	
 	/* Global variables */
-	public static BusStopTrackThread[] bStops;
+	public static List<BusStopTrackThread> bStops;
 	public static Comparator<WaitTime> waitTimeComp = new Comparator<WaitTime>(){
 		@Override
 		public int compare(WaitTime o1, WaitTime o2) {
@@ -34,15 +34,12 @@ public class Main {
 		// Load GTFS data
 		gtfsdata.parseFromPath(gtfsPath);
 		
-		// Initialize set with all the bus stops
-		Set<BusStopTrackThread> bStops_set = new HashSet<BusStopTrackThread>();
+		// Initialize ArrayList with all the bus stops
+		bStops = new ArrayList<BusStopTrackThread>();
 		
 		// Initialize bus stop objects and add them to the set
 		for (String name : bStop_names)
-			bStops_set.add(new BusStopTrackThread(name));
-		
-		// Convert to array
-		bStops = (BusStopTrackThread[]) bStops_set.toArray();
+			bStops.add(new BusStopTrackThread(name));
 		
 		// Initialize URL
 		try {
@@ -50,6 +47,9 @@ public class Main {
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
+		
+		// Initialize display
+		disp = new Display();
 	}
 	
 	
@@ -64,5 +64,8 @@ public class Main {
 		// Start threads
 		for(BusStopTrackThread bstt : bStops)
 			bstt.start();
+		
+		// Start display thread
+		disp.start();
 	}
 }

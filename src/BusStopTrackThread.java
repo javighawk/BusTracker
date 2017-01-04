@@ -22,9 +22,9 @@ public class BusStopTrackThread extends Thread {
 
 	/* Attributes */
 	private String busStopName;
-	private boolean cityCentre;
 	private Set<String> stop_ids;
 	private Map<String, WaitTime> stop_times;
+	private SortedSet<WaitTime> upcomingBuses;
 	private long BUSTRACK_PERIOD_MS;
 
 	
@@ -34,7 +34,6 @@ public class BusStopTrackThread extends Thread {
 	 */
 	public BusStopTrackThread(String busStopName){
 		// Set default argument values
-		this.cityCentre = true;
 		this.BUSTRACK_PERIOD_MS = 10000;
 		
 		// Save bus stop name
@@ -66,7 +65,7 @@ public class BusStopTrackThread extends Thread {
 		
 		// Update upcoming buses information
 		try {
-			Main.disp.updateWaitTime(this.busStopName, getNextWaitTimes(new HashMap<String, Integer>(), Display.numOfBusesToShow));
+			this.upcomingBuses = getNextWaitTimes(new HashMap<String, Integer>(), Display.numOfBusesToShow);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -77,7 +76,14 @@ public class BusStopTrackThread extends Thread {
 	 * Main thread
 	 */
 	public void run(){
+		// Keep track of the period of the thread
+		long period;
+		
+		// Start thread loop
 		while(true){
+			// Update period
+			period = System.currentTimeMillis();
+			
 			// Declare updates
 			Map<String, Integer> updates = new HashMap<String, Integer>();
 			
@@ -94,11 +100,12 @@ public class BusStopTrackThread extends Thread {
 			
 			try{				
 				// Update upcoming buses information
-				Main.disp.updateWaitTime(this.busStopName, getNextWaitTimes(updates, Display.numOfBusesToShow));
+				this.upcomingBuses = getNextWaitTimes(updates, Display.numOfBusesToShow);
 				
-				// Delay
-				Thread.sleep(BUSTRACK_PERIOD_MS);
 			} catch (Exception e) {e.printStackTrace();}
+			
+			// Wait until BUSTRACK_PERIOD_MS has passed
+			while (System.currentTimeMillis() - period < BUSTRACK_PERIOD_MS);
 		}
 	}
 	
@@ -110,24 +117,30 @@ public class BusStopTrackThread extends Thread {
 	public String getBusStopName(){
 		return this.busStopName;
 	}
-	
-	
-	/*
-	 * Getter
-	 * @return Direction to city centre
-	 */
-	public boolean getCityCentreDirection(){
-		return this.cityCentre;
-	}
-	
+
 	
 	/*
-	 * Switch direction
+	 * Get a WaitTime object representing an upcoming bus
+	 * @param idx 0 for the upcoming bus, 1 for the following bus, etc.
+	 * @param cityCentre True if the bus is going to City Centre, false otherwise
+	 * @return WaitTime representing this bus
 	 */
-	public void switchCityCentreDirection(){
-		this.cityCentre = !this.cityCentre;
+	public WaitTime getUpcomingBus(int idx, boolean cityCentre){
+		// Keep track of the index of the buses coming on the desired direction
+		int k = 0;
+		
+		// Iterate through all the upcoming buses
+		for (WaitTime wt : this.upcomingBuses){
+			if (wt.getCityCentre() == cityCentre){
+				if (k == idx)
+					return wt;
+				else
+					k++;
+			}
+		}
+		
+		return null;
 	}
-	
 	
 	/*
 	 * Extract trip updates from a FeedMessage object only for this bus stop
@@ -183,7 +196,7 @@ public class BusStopTrackThread extends Thread {
 	 * @return Sorted set of WaitTime objects
 	 * @throws Exception from GTFS query
 	 */
-	private WaitTime[] getNextWaitTimes(Map<String, Integer> delay, int nTimes) throws Exception{		
+	private SortedSet<WaitTime> getNextWaitTimes(Map<String, Integer> delay, int nTimes) throws Exception{		
 		// Get today's date (force day change at 3AM instead of midnight)
 		LocalDate today = LocalDateTime.now(ZoneId.of(Main.gtfsdata.getTimeZone())).minusHours(3).toLocalDate();
 		
@@ -232,6 +245,6 @@ public class BusStopTrackThread extends Thread {
 			ret.add(iter_cityCentre_false.next());
 		}
 		
-		return (WaitTime[]) ret.toArray();
+		return ret;
 	}
 }

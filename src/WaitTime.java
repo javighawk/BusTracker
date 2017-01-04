@@ -16,6 +16,7 @@ public class WaitTime {
 	private boolean cityCentre;
 	private Map<String, Boolean> calendar;
 	private Map<String, LocalDate> start_end_dates;
+	private String schedTime_str;
 	private LocalTime schedTime;
 	private long delay = 0;
 
@@ -32,6 +33,7 @@ public class WaitTime {
 		// Save parameters
 		this.trip_id = trip_id;
 		this.stop_name = stop_name;
+		this.schedTime_str = schedTime;
 
 		// Save wait time
 		try {
@@ -118,11 +120,9 @@ public class WaitTime {
 	
 	/*
 	 * Get waiting time given a scheduled arrival and a delay
-	 * @param schedArrival Scheduled arrival of the bus
-	 * @param delay Delay in seconds
 	 * @return 
 	 */
-	public long getWaitingTime(String schedArrival, long delay){
+	public long getWaitingTime(){
 		// Get current time in the Bus agency local time
 		LocalTime now = LocalTime.now(ZoneId.of(Main.gtfsdata.getTimeZone()));
 		
@@ -131,17 +131,17 @@ public class WaitTime {
 		
 		try {
 			// Parse scheduled arrival (this is in the bus agency's time zone)
-			LocalTime schedTime = LocalTime.parse(schedArrival);					
+			LocalTime schedTime = LocalTime.parse(this.schedTime_str);					
 			
 			// Get the difference in time
 			diff = now.until(schedTime, MINUTES);
 			
 		} catch (DateTimeParseException e) {
 			// Extract the hour value and subtract "24"
-			int hour = Integer.parseInt(schedArrival.substring(0,2)) - 24;
+			int hour = Integer.parseInt(this.schedTime_str.substring(0,2)) - 24;
 			
 			// Parse scheduled arrival (this is in the bus agency's time zone)
-			LocalTime schedTime = LocalTime.parse(String.format("%02d", hour) + schedArrival.substring(2));
+			LocalTime schedTime = LocalTime.parse(String.format("%02d", hour) + this.schedTime_str.substring(2));
 			
 			// Get the difference in time (add the 24 hours that we subtracted before)
 			diff = now.until(schedTime, MINUTES) + 24*60;
