@@ -209,6 +209,7 @@ public class BusStopTrackThread extends Thread {
 				// Create new WaitTime object and add delay
 				WaitTime wt = map.get(trip);
 				wt.setDelay(delay.get(trip));
+				wt.setRealtime(true);
 				
 				// Replace it on the Map object
 				map.replace(trip,wt);

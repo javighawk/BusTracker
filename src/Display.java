@@ -37,11 +37,11 @@ public class Display extends Thread{
 	 */
 	public Display(){
 		// Initialize backpack object
-		try {
-			matrix7 = new AdafruitLEDBackPack(1, i2c_addr);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			matrix7 = new AdafruitLEDBackPack(1, i2c_addr);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 	}
 	
 	
@@ -104,6 +104,13 @@ public class Display extends Thread{
 		
 		// Get waiting time
 		long waitTime = wt.getWaitingTime();
+		
+		// Get real time
+		String realtime;
+		if (wt.getRealtime())
+			realtime = "*";
+		else
+			realtime = "";
 
 	    // Show the index of the wait time in the semicolon on the left
 	    reg[2] = (byte) ((reg[2] & 0xF3) | upcomingBusDisp_idx << 2);
@@ -130,7 +137,14 @@ public class Display extends Thread{
 	        reg[4] = (byte) numDisplay[(int) (waitTime % 10)];
 	    }
 	    
-	    this.write();
+//	    this.write();
+	    String dir;
+	    if (this.cityCentreDisp)
+	    	dir = "City Centre";
+	    else
+	    	dir = "Other";
+	    System.out.println(busLine + " " + dir + ": " + waitTime + realtime);
+	    this.upcomingBusDisp_idx = (this.upcomingBusDisp_idx + 1) % numOfBusesToShow;
 	}
 	
 	
