@@ -19,8 +19,8 @@ public class WaitTime {
 	private String schedTime_str;
 	private LocalTime schedTime;
 	private long delay = 0;
-	private boolean realtime = false;
-
+	private long timeOfLastRealUpdate = 0;
+	private long maxPeriodBeingRealTime = 60000;
 	
 	/*
 	 * Constructor
@@ -88,7 +88,7 @@ public class WaitTime {
 	public boolean getCityCentre(){return this.cityCentre;}
 	public LocalTime getSchedTime(){return this.schedTime;}
 	public long getDelay(){return this.delay;}
-	public boolean getRealtime(){return this.realtime;}
+	public boolean isRealtime(){return timeOfLastRealUpdate + maxPeriodBeingRealTime >= System.currentTimeMillis();}
 	
 	
 	/*
@@ -167,7 +167,7 @@ public class WaitTime {
 	public void setCityCentre(boolean cityCentre){this.cityCentre = cityCentre;}
 	public void setDelay(long delay){this.delay = delay;}
 	public void setCalendar(Map<String, Boolean> calendar){this.calendar = calendar;}
-	public void setRealtime(boolean realtime){this.realtime = realtime;}
+	public void resetRealtime(){this.timeOfLastRealUpdate = System.currentTimeMillis();}
 	
 	public boolean equals(Object other){
 		return (this.trip_id.equals(((WaitTime)other).trip_id) &&

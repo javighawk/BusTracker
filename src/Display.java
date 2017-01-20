@@ -104,10 +104,13 @@ public class Display extends AdafruitLEDBackPack{
 		
 		// Get real time
 		String realtime;
-		if (wt.getRealtime())
+		if (wt.isRealtime()) {
+			reg[2] = (byte) (reg[2] | 0x02);
 			realtime = "*";
-		else
+		} else {
+			reg[2] = (byte) (reg[2] & (~0x02));
 			realtime = "";
+		}
 
 	    // Show the index of the wait time in the semicolon on the left
 	    reg[2] = (byte) ((reg[2] & 0xF3) | upcomingBusDisp_idx << 2);
