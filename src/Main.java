@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -31,13 +32,23 @@ public class Main {
 	 * @param gtfsPath Path to the static GTFS files
 	 */
 	public static void initialize(String gtfsPath){
+		// Initialize display
+		System.out.println( "Init display" );
+		try {
+			disp = new Display();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+				
 		// Load GTFS data
+		System.out.println( "Parsing" );
 		gtfsdata.parseFromPath(gtfsPath);
 		
 		// Initialize ArrayList with all the bus stops
 		bStops = new ArrayList<BusStopTrackThread>();
 		
 		// Initialize bus stop objects and add them to the set
+		System.out.println( "Init bus stops" );
 		for (String name : bStop_names)
 			bStops.add(new BusStopTrackThread(name));
 		
@@ -48,8 +59,7 @@ public class Main {
 			e.printStackTrace();
 		}
 		
-		// Initialize display
-		disp = new Display();
+		System.out.println( "Init complete" );
 	}
 	
 	
@@ -58,6 +68,7 @@ public class Main {
 	 * @param args Arguments. Path to the GTFS static data
 	 */
 	public static void main(String[] args){
+
 		// Initialize system
 		initialize(args[0]);
 		
@@ -65,7 +76,8 @@ public class Main {
 		for(BusStopTrackThread bstt : bStops)
 			bstt.start();
 		
-		// Start display thread
-		disp.start();
+		disp.startDisplayBusStops();
+		
+
 	}
 }

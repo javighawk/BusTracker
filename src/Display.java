@@ -2,7 +2,7 @@ import java.io.IOException;
 
 import ext.raspiMatrix.AdafruitLEDBackPack;
 
-public class Display extends Thread{
+public class Display extends AdafruitLEDBackPack{
 	
 	/* Displaying variables */
 	private int busStopDisp_idx = 0;
@@ -11,7 +11,7 @@ public class Display extends Thread{
 	public static int numOfBusesToShow = 3;
 	
 	/* Adafruit LED Backpack I2C address */
-	private int i2c_addr = 0x70;
+	private static int i2c_addr = 0x70;
 	
 	/* Byte values to write for each number */
 	private static int[] numDisplay = {0x3F,		// 0
@@ -28,37 +28,34 @@ public class Display extends Thread{
 	/* Register to write on the backpack */
 	private byte[] reg = new byte[5];
 	
-	/* LED Backpack object */
-	private AdafruitLEDBackPack matrix7;
-	
-	
 	/*
 	 * Constructor
 	 */
-	public Display(){
-		// Initialize backpack object
-//		try {
-//			matrix7 = new AdafruitLEDBackPack(1, i2c_addr);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+	public Display() throws IOException{
+		super(1, i2c_addr);
+		reg[0] = 0b00110000;
+		reg[1] = 0b01010100;
+		reg[2] = 0;
+		reg[3] = 0b00010000;
+		reg[4] = 0b01111000;
+		write();
 	}
 	
-	
-	/*
-	 * Run method
-	 */
-	public void run(){
-		while(true){
-			try {
-				this.showWaitTime();
-				Thread.sleep(1000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}	
-		}
+	public void startDisplayBusStops() {
+		Thread t = new Thread(){
+			public void run(){
+				while(true) {
+					try {
+						Main.disp.showWaitTime();
+						Thread.sleep(1000);
+					} catch( Exception e ) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		t.start();
 	}
-
 
 	/*
 	 * Write register into backpack register
@@ -66,10 +63,10 @@ public class Display extends Thread{
 	public void write(){
 		// Write to register
 		for (int i=0 ; i<this.reg.length ; i++)
-			matrix7.setBufferRow(i,this.reg[i]);
+			this.setBufferRow(i,this.reg[i]);
 		
 		// Flush
-		matrix7.writeDisplay();
+		this.writeDisplay();
 	}
 	
 	
@@ -137,7 +134,8 @@ public class Display extends Thread{
 	        reg[4] = (byte) numDisplay[(int) (waitTime % 10)];
 	    }
 	    
-//	    this.write();
+	    this.write();
+	    
 	    String dir;
 	    if (this.cityCentreDisp)
 	    	dir = "City Centre";
