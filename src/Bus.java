@@ -8,7 +8,7 @@ import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class WaitTime {
+public class Bus {
 	
 	/* Attributes */
 	private String trip_id = null;
@@ -20,7 +20,7 @@ public class WaitTime {
 	private LocalTime schedTime;
 	private long delay = 0;
 	private long timeOfLastRealUpdate = 0;
-	private long maxPeriodBeingRealTime = 60000;
+	private final long maxPeriodBeingRealTime = 60000;
 	
 	/*
 	 * Constructor
@@ -30,7 +30,7 @@ public class WaitTime {
 	 * @param cal Calendar data for this trip
 	 * @throws Exception Thrown by GTFSData
 	 */
-	public WaitTime(String trip_id, String stop_name, String schedTime, Map<String, String> cal) throws Exception{
+	public Bus(String trip_id, String stop_name, String schedTime, Map<String, String> cal) throws Exception{
 		// Save parameters
 		this.trip_id = trip_id;
 		this.stop_name = stop_name;
@@ -170,9 +170,9 @@ public class WaitTime {
 	public void resetRealtime(){this.timeOfLastRealUpdate = System.currentTimeMillis();}
 	
 	public boolean equals(Object other){
-		return (this.trip_id.equals(((WaitTime)other).trip_id) &&
-				this.stop_name.equals(((WaitTime)other).stop_name) &&
-				this.calendar.equals(((WaitTime)other).calendar) &&
-				this.delay == ((WaitTime)other).delay);
+		return (this.trip_id.equals(((Bus)other).trip_id) &&
+				this.stop_name.equals(((Bus)other).stop_name) &&
+				this.calendar.equals(((Bus)other).calendar) &&
+				this.delay == ((Bus)other).delay);
 	}
 }

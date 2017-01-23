@@ -13,10 +13,10 @@ public class Main {
 	public static String[] bStop_names = {"22nd Street / Avenue M"};
 	
 	/* Global variables */
-	public static List<BusStopTrackThread> bStops;
-	public static Comparator<WaitTime> waitTimeComp = new Comparator<WaitTime>(){
+	public static List<BusStopThread> bStops;
+	public static Comparator<Bus> waitTimeComp = new Comparator<Bus>(){
 		@Override
-		public int compare(WaitTime o1, WaitTime o2) {
+		public int compare(Bus o1, Bus o2) {
 			return o1.getSchedTime().plusSeconds(o1.getDelay()).compareTo(o2.getSchedTime().plusSeconds(o2.getDelay()));
 		}		
 	};
@@ -45,12 +45,12 @@ public class Main {
 		gtfsdata.parseFromPath(gtfsPath);
 		
 		// Initialize ArrayList with all the bus stops
-		bStops = new ArrayList<BusStopTrackThread>();
+		bStops = new ArrayList<BusStopThread>();
 		
 		// Initialize bus stop objects and add them to the set
 		System.out.println( "Init bus stops" );
 		for (String name : bStop_names)
-			bStops.add(new BusStopTrackThread(name));
+			bStops.add(new BusStopThread(name));
 		
 		// Initialize URL
 		try {
@@ -73,7 +73,7 @@ public class Main {
 		initialize(args[0]);
 		
 		// Start threads
-		for(BusStopTrackThread bstt : bStops)
+		for(BusStopThread bstt : bStops)
 			bstt.start();
 		
 		disp.startDisplayBusStops();
