@@ -31,22 +31,6 @@ public class Display extends AdafruitLEDBackPack{
 		write();
 	}
 	
-	public void showParse() {
-		reg[0] = 0b01110011;	// P
-		reg[1] = 0b01110111;	// A
-		reg[3] = 0b01010000;	// r
-		reg[4] = 0b01101101;	// S
-		write();
-	}
-	
-	public void showbstp() {
-		reg[0] = 0b01111100;	// b
-		reg[1] = 0b01101101;	// S
-		reg[3] = 0b01111000;	// t
-		reg[4] = 0b01110011;	// P
-		write();
-	}
-	
 	private void setColon(boolean colon) {
 		reg[2] = (byte) (colon ? reg[2] | 0x02 : reg[2] & ~0x02);
 		write();
@@ -69,7 +53,7 @@ public class Display extends AdafruitLEDBackPack{
 	}
 
 
-	private synchronized void write(){
+	private void write(){
 		for (int i=0 ; i<this.reg.length ; i++)
 			this.setBufferRow(i,this.reg[i]);
 		this.writeDisplay();
@@ -81,11 +65,10 @@ public class Display extends AdafruitLEDBackPack{
 	}
 	
 	
-	public void clearAndWrite() {
+	public synchronized void clearAndWrite() {
 		this.clear();
 		this.write();
-	}
-	
+	}	
 	
 	private synchronized void showWaitingTime(){
 		Bus bus = Main.bStops.get(this.busStopDisp_idx).getUpcomingBus(this.upcomingBusDisp_idx, this.cityCentreDisp);
@@ -98,6 +81,8 @@ public class Display extends AdafruitLEDBackPack{
 				e.printStackTrace();
 				this.clear();
 			}
+		} else {
+			this.clear();
 		}
 		reg[2] = (byte) ((reg[2] & 0xF3) | upcomingBusDisp_idx << 2);
 	    this.write();
@@ -137,19 +122,19 @@ public class Display extends AdafruitLEDBackPack{
 	}
 	
 	
-	public void displayNextBusStop(){
+	public synchronized void displayNextBusStop(){
 		this.busStopDisp_idx = (this.busStopDisp_idx + 1) % Main.bStop_names.length;
 		this.showWaitingTime();
 	}
 	
 	
-	public void displayNextUpcomingBus(){
+	public synchronized void displayNextUpcomingBus(){
 		this.upcomingBusDisp_idx = (this.upcomingBusDisp_idx + 1) % numOfBusesToShow;
 		this.showWaitingTime();
 	}
 	
 	
-	public void displayDirectionToCityCentre(boolean goesToCityCentre){
+	public synchronized void displayDirectionToCityCentre(boolean goesToCityCentre){
 		this.cityCentreDisp = goesToCityCentre;
 		this.showWaitingTime();
 	}

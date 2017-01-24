@@ -41,14 +41,12 @@ public class Main {
 		}
 				
 		// Load GTFS data
-		disp.showParse();
 		gtfsdata.parseFromPath(gtfsPath);
 		
 		// Initialize ArrayList with all the bus stops
 		bStops = new ArrayList<BusStopThread>();
 		
 		// Initialize bus stop objects and add them to the set
-		disp.showbstp();
 		for (String name : bStop_names)
 			bStops.add(new BusStopThread(name));
 		
@@ -59,10 +57,8 @@ public class Main {
 			e.printStackTrace();
 		}
 		
-		disp.clearAndWrite();
 		gpio = new GPIO();		
 	}
-	
 	
 	/*
 	 * Main function
@@ -78,7 +74,5 @@ public class Main {
 			bstt.start();
 		
 		disp.startDisplayBusStops();
-		
-
 	}
 }

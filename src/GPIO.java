@@ -65,8 +65,6 @@ public class GPIO {
 				updateDirectionFromSwitch( arg0.getState().isHigh() );
 			}
 		});
-		
-		
 	}
 	
 	private void updateDirectionFromSwitch(boolean goesToCityCentre) {
