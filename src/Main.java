@@ -59,8 +59,8 @@ public class Main {
 			e.printStackTrace();
 		}
 		
-		gpio = new GPIO();		
 		disp.clearAndWrite();
+		gpio = new GPIO();		
 	}
 	
 	
