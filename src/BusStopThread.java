@@ -88,7 +88,7 @@ public class BusStopThread extends Thread {
 	/**
 	 * @param idx 0 for the upcoming bus, 1 for the following bus, etc.
 	 */
-	public Bus getUpcomingBus(int idx, boolean goesToCityCentre){
+	public synchronized Bus getUpcomingBus(int idx, boolean goesToCityCentre){
 		int k = 0;
 		for (Bus b : this.upcomingBuses){
 			if (b.getCityCentre() == goesToCityCentre){
