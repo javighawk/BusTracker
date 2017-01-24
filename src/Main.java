@@ -25,6 +25,7 @@ public class Main {
 	public static GTFSData gtfsdata = new GTFSData();
 	public static Display disp;
 	public static URL url;
+	public static GPIO gpio;
 	
 	
 	/*
@@ -33,7 +34,6 @@ public class Main {
 	 */
 	public static void initialize(String gtfsPath){
 		// Initialize display
-		System.out.println( "Init display" );
 		try {
 			disp = new Display();
 		} catch (IOException e) {
@@ -41,14 +41,14 @@ public class Main {
 		}
 				
 		// Load GTFS data
-		System.out.println( "Parsing" );
+		disp.showParse();
 		gtfsdata.parseFromPath(gtfsPath);
 		
 		// Initialize ArrayList with all the bus stops
 		bStops = new ArrayList<BusStopThread>();
 		
 		// Initialize bus stop objects and add them to the set
-		System.out.println( "Init bus stops" );
+		disp.showbstp();
 		for (String name : bStop_names)
 			bStops.add(new BusStopThread(name));
 		
@@ -59,7 +59,8 @@ public class Main {
 			e.printStackTrace();
 		}
 		
-		System.out.println( "Init complete" );
+		gpio = new GPIO();		
+		disp.clearAndWrite();
 	}
 	
 	
