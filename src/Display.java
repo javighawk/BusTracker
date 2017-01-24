@@ -31,6 +31,27 @@ public class Display extends AdafruitLEDBackPack{
 		write();
 	}
 	
+	public void showParse() {
+		reg[0] = 0b01110011;	// P
+		reg[1] = 0b01110111;	// A
+		reg[3] = 0b01010000;	// r
+		reg[4] = 0b01101101;	// S
+		write();
+	}
+	
+	public void showbstp() {
+		reg[0] = 0b01111100;	// b
+		reg[1] = 0b01101101;	// S
+		reg[3] = 0b01111000;	// t
+		reg[4] = 0b01110011;	// P
+		write();
+	}
+	
+	private void setColon(boolean colon) {
+		reg[2] = (byte) (colon ? reg[2] | 0x02 : reg[2] & ~0x02);
+		write();
+	}
+	
 	public void startDisplayBusStops() {
 		Thread t = new Thread(){
 			public void run(){
@@ -48,14 +69,14 @@ public class Display extends AdafruitLEDBackPack{
 	}
 
 
-	public void write(){
+	private synchronized void write(){
 		for (int i=0 ; i<this.reg.length ; i++)
 			this.setBufferRow(i,this.reg[i]);
 		this.writeDisplay();
 	}
 	
 	
-	public void clear(){
+	private void clear(){
 		this.reg = new byte[5];
 	}
 	
@@ -66,15 +87,17 @@ public class Display extends AdafruitLEDBackPack{
 	}
 	
 	
-	public void showWaitingTime(){
+	private synchronized void showWaitingTime(){
 		Bus bus = Main.bStops.get(this.busStopDisp_idx).getUpcomingBus(this.upcomingBusDisp_idx, this.cityCentreDisp);
-		try {
-			writeBusLine(bus);
-			writeRealTimeIndicator(bus);
-			writeWaitingTime(bus);
-		} catch(Exception e) {
-			e.printStackTrace();
-			this.clear();
+		if( bus != null ) {
+			try {
+				writeBusLine(bus);
+				writeRealTimeIndicator(bus);
+				writeWaitingTime(bus);
+			} catch(Exception e) {
+				e.printStackTrace();
+				this.clear();
+			}
 		}
 		reg[2] = (byte) ((reg[2] & 0xF3) | upcomingBusDisp_idx << 2);
 	    this.write();
@@ -83,24 +106,20 @@ public class Display extends AdafruitLEDBackPack{
 	
 	private void writeWaitingTime(Bus bus) {
 		long waitTime = bus.getWaitingTime();
-	    if( waitTime < 10 && waitTime >= 0){
+		if( waitTime < 0 || waitTime >= 100 ){
+			this.clear();
+		} else if( waitTime < 10 ){
 	        reg[3] = 0;
 	        reg[4] = (byte) numDisplay[(int) waitTime];
-	    }else if( waitTime < 100 ){
+	    } else {
 	        reg[3] = (byte) numDisplay[(int)(waitTime/10)];
 	        reg[4] = (byte) numDisplay[(int) (waitTime % 10)];
-	    }else{
-	    	this.clear();
 	    }
 	}
 
 	
 	private void writeRealTimeIndicator(Bus bus) {
-		if (bus.isRealtime()) {
-			reg[2] = (byte) (reg[2] | 0x02);
-		} else {
-			reg[2] = (byte) (reg[2] & (~0x02));
-		}
+		setColon( bus.isRealtime() );
 	}
 	
 
@@ -118,20 +137,20 @@ public class Display extends AdafruitLEDBackPack{
 	}
 	
 	
-	public void displayNextBusStop() throws Exception{
+	public void displayNextBusStop(){
 		this.busStopDisp_idx = (this.busStopDisp_idx + 1) % Main.bStop_names.length;
 		this.showWaitingTime();
 	}
 	
 	
-	public void displayNextUpcomingBus() throws Exception{
+	public void displayNextUpcomingBus(){
 		this.upcomingBusDisp_idx = (this.upcomingBusDisp_idx + 1) % numOfBusesToShow;
 		this.showWaitingTime();
 	}
 	
 	
-	public void displayOppositeDirection() throws Exception{
-		this.cityCentreDisp = !this.cityCentreDisp;
+	public void displayDirectionToCityCentre(boolean goesToCityCentre){
+		this.cityCentreDisp = goesToCityCentre;
 		this.showWaitingTime();
 	}
 }
