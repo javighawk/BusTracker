@@ -36,6 +36,8 @@ public class GPIO {
 		toCityCentreGpioPin = gpio.provisionDigitalOutputPin(toCityCentrePin);
 		fromCityCentreGpioPin = gpio.provisionDigitalOutputPin(fromCityCentrePin);
 		
+		updateDirectionFromSwitch( directionGpioPin.isHigh() );
+		
 		nextBusGpioPin.addListener(new GpioCustomListener() {
 			@Override
 			public void handleGpioPinDigitalStateChangeEvent(
@@ -60,12 +62,14 @@ public class GPIO {
 			@Override
 			public void handleGpioPinDigitalStateChangeEvent(
 					GpioPinDigitalStateChangeEvent arg0) {
-				updateDirectionFromSwitchListener( arg0.getState().isHigh() );
+				updateDirectionFromSwitch( arg0.getState().isHigh() );
 			}
 		});
+		
+		
 	}
 	
-	private void updateDirectionFromSwitchListener(boolean goesToCityCentre) {
+	private void updateDirectionFromSwitch(boolean goesToCityCentre) {
 		if (goesToCityCentre) {
 			toCityCentreGpioPin.high();
 			fromCityCentreGpioPin.low();
@@ -75,5 +79,4 @@ public class GPIO {
 		}
 		Main.disp.displayDirectionToCityCentre( goesToCityCentre );
 	}
-
 }
