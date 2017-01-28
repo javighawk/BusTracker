@@ -33,7 +33,6 @@ public class Display extends AdafruitLEDBackPack{
 	
 	private void setColon(boolean colon) {
 		reg[2] = (byte) (colon ? reg[2] | 0x02 : reg[2] & ~0x02);
-		write();
 	}
 	
 	public void startDisplayBusStops() {
@@ -63,12 +62,6 @@ public class Display extends AdafruitLEDBackPack{
 	private void clear(){
 		this.reg = new byte[5];
 	}
-	
-	
-	public synchronized void clearAndWrite() {
-		this.clear();
-		this.write();
-	}	
 	
 	private synchronized void showWaitingTime(){
 		Bus bus = Main.bStops.get(this.busStopDisp_idx).getUpcomingBus(this.upcomingBusDisp_idx, this.cityCentreDisp);
