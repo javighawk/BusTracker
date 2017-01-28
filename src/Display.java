@@ -1,5 +1,7 @@
 import java.io.IOException;
 
+import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
+
 import ext.raspiMatrix.AdafruitLEDBackPack;
 
 public class Display extends AdafruitLEDBackPack{
@@ -21,7 +23,7 @@ public class Display extends AdafruitLEDBackPack{
 									     0x6F};		// 9
 	private byte[] reg = new byte[5];
 	
-	public Display() throws IOException{
+	public Display() throws IOException, UnsupportedBusNumberException{
 		super(1, i2c_addr);
 		reg[0] = 0b00110000;
 		reg[1] = 0b01010100;

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
+
 public class Main {
 	
 	/* Initialize user variables */
@@ -36,7 +38,7 @@ public class Main {
 		// Initialize display
 		try {
 			disp = new Display();
-		} catch (IOException e) {
+		} catch (IOException | UnsupportedBusNumberException e) {
 			e.printStackTrace();
 		}
 				

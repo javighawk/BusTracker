@@ -3,6 +3,7 @@ import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.Pin;
+import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
@@ -33,8 +34,11 @@ public class GPIO {
 		nextBusGpioPin = gpio.provisionDigitalInputPin(nextBusPin);
 		nextStopGpioPin = gpio.provisionDigitalInputPin(nextStopPin);
 		directionGpioPin = gpio.provisionDigitalInputPin(directionPin);
-		toCityCentreGpioPin = gpio.provisionDigitalOutputPin(toCityCentrePin);
-		fromCityCentreGpioPin = gpio.provisionDigitalOutputPin(fromCityCentrePin);
+		toCityCentreGpioPin = gpio.provisionDigitalOutputPin(toCityCentrePin, PinState.HIGH);
+		fromCityCentreGpioPin = gpio.provisionDigitalOutputPin(fromCityCentrePin, PinState.HIGH);
+
+		toCityCentreGpioPin.setShutdownOptions(true, PinState.LOW);
+		fromCityCentreGpioPin.setShutdownOptions(true, PinState.LOW);
 		
 		updateDirectionFromSwitch( directionGpioPin.isHigh() );
 		
@@ -62,7 +66,7 @@ public class GPIO {
 			@Override
 			public void handleGpioPinDigitalStateChangeEvent(
 					GpioPinDigitalStateChangeEvent arg0) {
-				updateDirectionFromSwitch( arg0.getState().isHigh() );
+				updateDirectionFromSwitch( arg0.getState().isLow() );
 			}
 		});
 	}
@@ -72,8 +76,8 @@ public class GPIO {
 			toCityCentreGpioPin.high();
 			fromCityCentreGpioPin.low();
 		} else {
-			toCityCentreGpioPin.high();
-			fromCityCentreGpioPin.low();
+			toCityCentreGpioPin.low();
+			fromCityCentreGpioPin.high();
 		}
 		Main.disp.displayDirectionToCityCentre( goesToCityCentre );
 	}
