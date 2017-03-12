@@ -56,7 +56,10 @@ Temporary Items
 gtfs/*
 
 # External dependencies
-src/ext/*
+src/ext/
+
+# Ivy settings
+.settings
 
 # Jar files
 *.jar
