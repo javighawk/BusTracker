@@ -3,6 +3,7 @@ package com.bustracker.bus;
 import java.time.LocalDateTime;
 
 import rx.Observable;
+import rx.subjects.PublishSubject;
 
 public class TripStopImpl implements TripStop {
 
@@ -12,6 +13,7 @@ public class TripStopImpl implements TripStop {
 	private long delay;
 	private final TrackingTimeoutTimerImpl timeoutTimer = 
 			new TrackingTimeoutTimerImpl( 60000 );
+	private PublishSubject<TripStop> delaySubject = PublishSubject.create();
 	
 	public TripStopImpl( 
 			String tripId,
@@ -22,6 +24,7 @@ public class TripStopImpl implements TripStop {
 		this.busLine = busLine;
 		this.scheduledArrival = scheduledArrival;
 		this.delay = delay;
+		timeoutTimer.start();
 	}
 	
 	@Override
@@ -51,12 +54,19 @@ public class TripStopImpl implements TripStop {
 
 	@Override
 	public void setDelay( long delay ) {
-		this.delay = delay;
-		setUpTimeoutTimer();
+		if( delay != this.delay ) {
+			this.delay = delay;
+			resetTimeoutTimer();
+			fireDelayUpdateEvent();
+		}
 	}
 
-	private void setUpTimeoutTimer() {
-		
+	private void fireDelayUpdateEvent() {
+		delaySubject .onNext( this );
+	}
+
+	private void resetTimeoutTimer() {
+		timeoutTimer.resetTimer();
 	}
 
 	@Override
@@ -70,9 +80,22 @@ public class TripStopImpl implements TripStop {
 		return 
 			tripId.equals( other.getTripId() ) &&
 			busLine.equals( other.getBusLine() ) && 
-			scheduledArrival.equals( other.getScheduledArrivalTime() ) && 
-			getRealArrivalTime().equals( other.getRealArrivalTime() );
+			scheduledArrival.equals( other.getScheduledArrivalTime() );
 	}
-	
+
+	@Override
+	public int compareTo( TripStop o ) {
+		return getRealArrivalTime().compareTo( o.getRealArrivalTime() );
+	}
+
+	@Override
+	public long getDelay() {
+		return delay;
+	}
+
+	@Override
+	public Observable<TripStop> getDelayUpdateEvents() {
+		return delaySubject.asObservable();
+	}
 	
 }

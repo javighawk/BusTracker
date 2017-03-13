@@ -1,23 +1,27 @@
 package com.bustracker.bus;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 import rx.Observable;
 
-public interface TripStop {
+public interface TripStop extends Comparable<TripStop> {
 	
 	String getTripId();
 	
 	String getBusLine();
 	
+	LocalDateTime getScheduledArrivalTime();
+
+	long getDelay();
+	
 	LocalDateTime getRealArrivalTime();
 	
-	LocalDateTime getScheduledArrivalTime();
+	Observable<TripStop> getDelayUpdateEvents();
 	
 	Observable<TripStop> getTrackingTimeoutEvents();
 
 	void setDelay( long delay );
 	
 	boolean isTrackingTimedOut();
+	
 }

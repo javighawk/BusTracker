@@ -8,7 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.bustracker.bus.TripStopImpl;
-import com.bustracker.bus.BusStopImpl;
+import com.bustracker.bus.BusStopImplBackup;
 import com.bustracker.gtfs.GTFSStaticDataImpl;
 import com.bustracker.userio.Display;
 import com.bustracker.userio.ButtonsManagerImpl;
@@ -22,7 +22,7 @@ public class Main {
 	public static String[] bStop_names = {"22nd Street / Avenue M"};
 	
 	/* Global variables */
-	public static List<BusStopImpl> bStops;
+	public static List<BusStopImplBackup> bStops;
 	public static Comparator<TripStopImpl> waitTimeComp = new Comparator<TripStopImpl>(){
 		@Override
 		public int compare(TripStopImpl o1, TripStopImpl o2) {
@@ -53,11 +53,11 @@ public class Main {
 		gtfsdata.parseFromPath(gtfsPath);
 		
 		// Initialize ArrayList with all the bus stops
-		bStops = new ArrayList<BusStopImpl>();
+		bStops = new ArrayList<BusStopImplBackup>();
 		
 		// Initialize bus stop objects and add them to the set
 		for (String name : bStop_names)
-			bStops.add(new BusStopImpl(name));
+			bStops.add(new BusStopImplBackup(name));
 		
 		// Initialize URL
 		try {
@@ -79,7 +79,7 @@ public class Main {
 		initialize(args[0]);
 		
 		// Start threads
-		for(BusStopImpl bstt : bStops)
+		for(BusStopImplBackup bstt : bStops)
 			bstt.start();
 		
 		disp.startDisplayBusStops();

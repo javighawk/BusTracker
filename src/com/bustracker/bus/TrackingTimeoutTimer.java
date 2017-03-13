@@ -2,7 +2,7 @@ package com.bustracker.bus;
 
 import rx.Observable;
 
-public interface TrackingTimeoutTimer extends Runnable {
+public interface TrackingTimeoutTimer {
 	
 	void resetTimer();
 	

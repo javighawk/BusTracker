@@ -10,5 +10,5 @@ public interface BusStop {
 
 	TripStop getUpcomingBus( int busIndex );
 	
-	Observable<TripStop> getNewUpdatesEvents();
+	Observable<BusStop> getNewUpdatesEvents();
 }

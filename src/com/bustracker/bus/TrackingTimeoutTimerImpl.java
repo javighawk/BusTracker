@@ -5,7 +5,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
-public class TrackingTimeoutTimerImpl implements TrackingTimeoutTimer {
+public class TrackingTimeoutTimerImpl 
+extends Thread
+implements TrackingTimeoutTimer {
 	
 	private final long timeout;
 	private long lastResetTime;
