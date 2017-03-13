@@ -1,3 +1,5 @@
+package com.bustracker.bus;
+
 import static java.time.temporal.ChronoUnit.MINUTES;
 
 import java.time.LocalDate;
@@ -8,7 +10,9 @@ import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Bus {
+import com.bustracker.Main;
+
+public class TripStopImpl {
 	
 	/* Attributes */
 	private String trip_id = null;
@@ -30,7 +34,7 @@ public class Bus {
 	 * @param cal Calendar data for this trip
 	 * @throws Exception Thrown by GTFSData
 	 */
-	public Bus(String trip_id, String stop_name, String schedTime, Map<String, String> cal) throws Exception{
+	public TripStopImpl(String trip_id, String stop_name, String schedTime, Map<String, String> cal) throws Exception{
 		// Save parameters
 		this.trip_id = trip_id;
 		this.stop_name = stop_name;
@@ -170,9 +174,9 @@ public class Bus {
 	public void resetRealtime(){this.timeOfLastRealUpdate = System.currentTimeMillis();}
 	
 	public boolean equals(Object other){
-		return (this.trip_id.equals(((Bus)other).trip_id) &&
-				this.stop_name.equals(((Bus)other).stop_name) &&
-				this.calendar.equals(((Bus)other).calendar) &&
-				this.delay == ((Bus)other).delay);
+		return (this.trip_id.equals(((TripStopImpl)other).trip_id) &&
+				this.stop_name.equals(((TripStopImpl)other).stop_name) &&
+				this.calendar.equals(((TripStopImpl)other).calendar) &&
+				this.delay == ((TripStopImpl)other).delay);
 	}
 }

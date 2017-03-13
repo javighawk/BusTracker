@@ -1,3 +1,6 @@
+package com.bustracker.userio;
+
+import com.bustracker.Main;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
@@ -8,7 +11,7 @@ import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
-public class GPIO {
+public class ButtonsManagerImpl {
 	
 	private final static Pin nextBusPin = RaspiPin.GPIO_04;
 	private final static Pin nextStopPin = RaspiPin.GPIO_05;
@@ -29,7 +32,7 @@ public class GPIO {
 		}
 	}
 	
-	public GPIO() {
+	public ButtonsManagerImpl() {
 		final GpioController gpio = GpioFactory.getInstance();
 		nextBusGpioPin = gpio.provisionDigitalInputPin(nextBusPin);
 		nextStopGpioPin = gpio.provisionDigitalInputPin(nextStopPin);

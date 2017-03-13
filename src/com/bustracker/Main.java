@@ -1,3 +1,5 @@
+package com.bustracker;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -5,6 +7,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import com.bustracker.bus.TripStopImpl;
+import com.bustracker.bus.BusStopImpl;
+import com.bustracker.gtfs.GTFSStaticDataImpl;
+import com.bustracker.userio.Display;
+import com.bustracker.userio.ButtonsManagerImpl;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
 public class Main {
@@ -15,19 +22,19 @@ public class Main {
 	public static String[] bStop_names = {"22nd Street / Avenue M"};
 	
 	/* Global variables */
-	public static List<BusStopThread> bStops;
-	public static Comparator<Bus> waitTimeComp = new Comparator<Bus>(){
+	public static List<BusStopImpl> bStops;
+	public static Comparator<TripStopImpl> waitTimeComp = new Comparator<TripStopImpl>(){
 		@Override
-		public int compare(Bus o1, Bus o2) {
+		public int compare(TripStopImpl o1, TripStopImpl o2) {
 			return o1.getSchedTime().plusSeconds(o1.getDelay()).compareTo(o2.getSchedTime().plusSeconds(o2.getDelay()));
 		}		
 	};
 	
 	/* Shared variables */
-	public static GTFSData gtfsdata = new GTFSData();
+	public static GTFSStaticDataImpl gtfsdata = new GTFSStaticDataImpl();
 	public static Display disp;
 	public static URL url;
-	public static GPIO gpio;
+	public static ButtonsManagerImpl gpio;
 	
 	
 	/*
@@ -46,11 +53,11 @@ public class Main {
 		gtfsdata.parseFromPath(gtfsPath);
 		
 		// Initialize ArrayList with all the bus stops
-		bStops = new ArrayList<BusStopThread>();
+		bStops = new ArrayList<BusStopImpl>();
 		
 		// Initialize bus stop objects and add them to the set
 		for (String name : bStop_names)
-			bStops.add(new BusStopThread(name));
+			bStops.add(new BusStopImpl(name));
 		
 		// Initialize URL
 		try {
@@ -59,7 +66,7 @@ public class Main {
 			e.printStackTrace();
 		}
 		
-		gpio = new GPIO();		
+		gpio = new ButtonsManagerImpl();		
 	}
 	
 	/*
@@ -72,7 +79,7 @@ public class Main {
 		initialize(args[0]);
 		
 		// Start threads
-		for(BusStopThread bstt : bStops)
+		for(BusStopImpl bstt : bStops)
 			bstt.start();
 		
 		disp.startDisplayBusStops();

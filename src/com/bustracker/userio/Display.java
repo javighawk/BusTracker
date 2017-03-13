@@ -1,8 +1,11 @@
+package com.bustracker.userio;
 import java.io.IOException;
 
+import com.bustracker.Main;
+import com.bustracker.bus.TripStopImpl;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
-import ext.raspiMatrix.AdafruitLEDBackPack;
+import net.slintes.raspiMatrix.AdafruitLEDBackPack;
 
 public class Display extends AdafruitLEDBackPack{
 	
@@ -66,7 +69,7 @@ public class Display extends AdafruitLEDBackPack{
 	}
 	
 	private synchronized void showWaitingTime(){
-		Bus bus = Main.bStops.get(this.busStopDisp_idx).getUpcomingBus(this.upcomingBusDisp_idx, this.cityCentreDisp);
+		TripStopImpl bus = Main.bStops.get(this.busStopDisp_idx).getUpcomingBus(this.upcomingBusDisp_idx, this.cityCentreDisp);
 		if( bus != null ) {
 			try {
 				writeBusLine(bus);
@@ -84,7 +87,7 @@ public class Display extends AdafruitLEDBackPack{
 	}
 
 	
-	private void writeWaitingTime(Bus bus) {
+	private void writeWaitingTime(TripStopImpl bus) {
 		long waitTime = bus.getWaitingTime();
 		if( waitTime < 0 || waitTime >= 100 ){
 			this.clear();
@@ -98,12 +101,12 @@ public class Display extends AdafruitLEDBackPack{
 	}
 
 	
-	private void writeRealTimeIndicator(Bus bus) {
+	private void writeRealTimeIndicator(TripStopImpl bus) {
 		setColon( bus.isRealtime() );
 	}
 	
 
-	private void writeBusLine(Bus bus) throws Exception {
+	private void writeBusLine(TripStopImpl bus) throws Exception {
 		int busLine = Integer.parseInt(Main.gtfsdata.getBusNumberFromTrip(bus.getTripID()));
 		if( busLine > 0 && busLine < 10 ){
 		    reg[0] = (byte) numDisplay[busLine];

@@ -1,3 +1,5 @@
+package com.bustracker.gtfs;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -10,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class GTFSData {
+public class GTFSStaticDataImpl {
 
 	/* Sets of maps storing the information from the static GTFS feed */
 	public Set<Map<String, String>> agency = new HashSet<Map<String, String>>();

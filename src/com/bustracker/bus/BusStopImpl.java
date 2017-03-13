@@ -1,3 +1,5 @@
+package com.bustracker.bus;
+
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -11,18 +13,21 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
+import com.bustracker.Main;
+import com.bustracker.userio.Display;
 import com.google.transit.realtime.GtfsRealtime.FeedEntity;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
 
-public class BusStopThread extends Thread {
+
+public class BusStopImpl extends Thread {
 
 	/* Attributes */
 	private String busStopName;
 	private Set<String> stopIDs;
-	private Map<String, Bus> allBuses;
-	private SortedSet<Bus> upcomingBuses;
+	private Map<String, TripStopImpl> allBuses;
+	private SortedSet<TripStopImpl> upcomingBuses;
 	private final long threadPeriod_ms = 10000;
 	private long threadLastUpdate_ms = 0;
 
@@ -31,7 +36,7 @@ public class BusStopThread extends Thread {
 	 * Constructor
 	 * @param busStopName Name of the bus stop to be tracked
 	 */
-	public BusStopThread(String busStopName){
+	public BusStopImpl(String busStopName){
 		this.busStopName = busStopName;
 		this.stopIDs = Main.gtfsdata.getBusStopIDs(busStopName);
 		this.allBuses = getAllTripToBus(busStopName);
@@ -41,13 +46,13 @@ public class BusStopThread extends Thread {
 	}
 
 
-	private Map<String, Bus> getAllTripToBus(String busStopName) {
-		Map<String, Bus> tripToBus = new HashMap<String, Bus>();
+	private Map<String, TripStopImpl> getAllTripToBus(String busStopName) {
+		Map<String, TripStopImpl> tripToBus = new HashMap<String, TripStopImpl>();
 		for(Map<String, String> wt : Main.gtfsdata.getBusStopTimes(busStopName)){ 
 			try {
 				Map<String, String> calendar = Main.gtfsdata.getCaledarFromTripID(wt.get("trip_id"));
 				tripToBus.put(wt.get("trip_id"), 
-								new Bus(wt.get("trip_id"), 
+								new TripStopImpl(wt.get("trip_id"), 
 											 this.busStopName, 
 											 wt.get("arrival_time"),
 											 calendar));
@@ -88,9 +93,9 @@ public class BusStopThread extends Thread {
 	/**
 	 * @param idx 0 for the upcoming bus, 1 for the following bus, etc.
 	 */
-	public synchronized Bus getUpcomingBus(int idx, boolean goesToCityCentre){
+	public synchronized TripStopImpl getUpcomingBus(int idx, boolean goesToCityCentre){
 		int k = 0;
-		for (Bus b : this.upcomingBuses){
+		for (TripStopImpl b : this.upcomingBuses){
 			if (b.getCityCentre() == goesToCityCentre){
 				if (k == idx)
 					return b;
@@ -133,20 +138,20 @@ public class BusStopThread extends Thread {
 	}
 
 	
-	private SortedSet<Bus> getNextBuses(Map<String, Integer> tripToDelay, int numberOfBuses) throws Exception{		
-		Map<String, Bus> map = getUpdatedAllTripToBuses(tripToDelay);
-		SortedSet<Bus> upcomingBbusesToCityCentre = getUpcomingBuses(map, true);
-		SortedSet<Bus> upcomingBusesFromCityCentre = getUpcomingBuses(map, false);
-		SortedSet<Bus> ret = new TreeSet<Bus>(Main.waitTimeComp);
+	private SortedSet<TripStopImpl> getNextBuses(Map<String, Integer> tripToDelay, int numberOfBuses) throws Exception{		
+		Map<String, TripStopImpl> map = getUpdatedAllTripToBuses(tripToDelay);
+		SortedSet<TripStopImpl> upcomingBbusesToCityCentre = getUpcomingBuses(map, true);
+		SortedSet<TripStopImpl> upcomingBusesFromCityCentre = getUpcomingBuses(map, false);
+		SortedSet<TripStopImpl> ret = new TreeSet<TripStopImpl>(Main.waitTimeComp);
 		ret.addAll(getNUpcomingBuses(upcomingBbusesToCityCentre, numberOfBuses));
 		ret.addAll(getNUpcomingBuses(upcomingBusesFromCityCentre, numberOfBuses));
 		return ret;
 	}
 	
 	
-	private SortedSet<Bus> getNUpcomingBuses(SortedSet<Bus> upcomingBuses, int numberOfBuses) {
-		SortedSet<Bus> ret = new TreeSet<Bus>(Main.waitTimeComp);
-		Iterator<Bus> iter = upcomingBuses.iterator();
+	private SortedSet<TripStopImpl> getNUpcomingBuses(SortedSet<TripStopImpl> upcomingBuses, int numberOfBuses) {
+		SortedSet<TripStopImpl> ret = new TreeSet<TripStopImpl>(Main.waitTimeComp);
+		Iterator<TripStopImpl> iter = upcomingBuses.iterator();
 		for (int i=0 ; i<numberOfBuses ; i++){
 			if (iter.hasNext()) {
 				ret.add(iter.next());
@@ -158,13 +163,13 @@ public class BusStopThread extends Thread {
 	}
 	
 	
-	private SortedSet<Bus> getUpcomingBuses(Map<String, Bus> tripToBus, boolean goesToCityCentre) {
+	private SortedSet<TripStopImpl> getUpcomingBuses(Map<String, TripStopImpl> tripToBus, boolean goesToCityCentre) {
 		// Force day change at 3AM instead of midnight
 		LocalDate today = LocalDateTime.now(ZoneId.of(Main.gtfsdata.getTimeZone())).minusHours(3).toLocalDate();
 		LocalTime ref = LocalTime.now(ZoneId.of(Main.gtfsdata.getTimeZone()));
-		SortedSet<Bus> upcomingBuses = new TreeSet<Bus>(Main.waitTimeComp);
+		SortedSet<TripStopImpl> upcomingBuses = new TreeSet<TripStopImpl>(Main.waitTimeComp);
 		for (String trip : tripToBus.keySet()) {
-			Bus wt = tripToBus.get(trip);
+			TripStopImpl wt = tripToBus.get(trip);
 			if (wt.getRealTime().compareTo(ref) >= 0 && wt.isRunning(today)){
 				if (wt.getCityCentre() == goesToCityCentre)
 					upcomingBuses.add(tripToBus.get(trip));
@@ -174,11 +179,11 @@ public class BusStopThread extends Thread {
 	}
 
 
-	private Map<String, Bus> getUpdatedAllTripToBuses( Map<String, Integer> tripToDelay) {
-		Map<String, Bus> map = new HashMap<String, Bus>(this.allBuses);
+	private Map<String, TripStopImpl> getUpdatedAllTripToBuses( Map<String, Integer> tripToDelay) {
+		Map<String, TripStopImpl> map = new HashMap<String, TripStopImpl>(this.allBuses);
 		for (String trip : tripToDelay.keySet()){
 			if (map.containsKey(trip)){
-				Bus wt = map.get(trip);
+				TripStopImpl wt = map.get(trip);
 				wt.setDelay(tripToDelay.get(trip));
 				wt.resetRealtime();
 				map.replace(trip,wt);
