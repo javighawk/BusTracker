@@ -1,6 +1,8 @@
 package com.bustracker.bus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -14,17 +16,37 @@ public class TripStopImpl implements TripStop {
 	private final TrackingTimeoutTimerImpl timeoutTimer = 
 			new TrackingTimeoutTimerImpl( 60000 );
 	private PublishSubject<TripStop> delaySubject = PublishSubject.create();
+	private final String busStopId;
 	
 	public TripStopImpl( 
 			String tripId,
 			String busLine,
+			String busStopId,
 			LocalDateTime scheduledArrival, 
 			long delay ) {
 		this.tripId = tripId;
 		this.busLine = busLine;
+		this.busStopId = busStopId;
 		this.scheduledArrival = scheduledArrival;
 		this.delay = delay;
 		timeoutTimer.start();
+	}
+	
+	public TripStopImpl( 
+			String tripId,
+			String busLine,
+			String busStopId,
+			String scheduledArrivalTime, 
+			long delay ) {
+		this( 
+				tripId, 
+				busLine,
+				busStopId,
+				LocalDateTime.of(
+						LocalDate.now(),
+						LocalTime.parse( 
+								scheduledArrivalTime ) ), 
+				delay );
 	}
 	
 	@Override
@@ -50,6 +72,11 @@ public class TripStopImpl implements TripStop {
 	@Override
 	public String getBusLine() {
 		return busLine;
+	}
+	
+	@Override
+	public String getBusStopId() {
+		return busStopId;
 	}
 
 	@Override

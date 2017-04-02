@@ -10,6 +10,8 @@ public interface TripStop extends Comparable<TripStop> {
 	
 	String getBusLine();
 	
+	String getBusStopId();
+	
 	LocalDateTime getScheduledArrivalTime();
 
 	long getDelay();
