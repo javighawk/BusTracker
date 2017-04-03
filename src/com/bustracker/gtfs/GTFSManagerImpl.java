@@ -18,6 +18,7 @@ import com.google.transit.realtime.GtfsRealtime.FeedEntity;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate;
 
+import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
 import rx.subjects.PublishSubject;
@@ -49,7 +50,7 @@ public class GTFSManagerImpl implements GTFSManager {
 		try {
 			feed = FeedMessage.parseFrom( url.openStream() );
 			Map<String, Set<TripStop>> updates = 
-					getTripStopsFromFeed(feed);
+					getBusStopToTripStopsFromFeed(feed);
 			notifySubscriptions( updates );
 		} catch( IOException e ) {
 			e.printStackTrace();
@@ -60,7 +61,8 @@ public class GTFSManagerImpl implements GTFSManager {
 		updates.forEach( ( k, v ) -> busStopSubscriptions.get( k ).onNext( v ) );
 	}
 
-	private Map<String, Set<TripStop>> getTripStopsFromFeed( FeedMessage feed ) {
+	private Map<String, Set<TripStop>> getBusStopToTripStopsFromFeed( 
+			FeedMessage feed ) {
 		Map<String, Set<TripStop>> ret = Maps.newHashMap();
 		for( FeedEntity entity : feed.getEntityList() ) {
 			if( entity.hasTripUpdate() ) {								  
@@ -124,17 +126,22 @@ public class GTFSManagerImpl implements GTFSManager {
 
 	@Override
 	public Subscription subscribeToBusStopUpdates(
-			String busStopId, Action1<? super Set<TripStop>> action ) {
+			String busStopName, 
+			Action1<? super Set<TripStop>> action ) {
 		PublishSubject<Set<TripStop>> subject = PublishSubject.create();
-		busStopSubscriptions.put( busStopId, subject );
+		staticData.getBusStopIds( busStopName ).forEach( id -> { 
+			busStopSubscriptions.put( busStopName, subject );
+		} );
 		return subject.asObservable().subscribe( action );
 	}
 
 	@Override
-	public void unsubscribeToBusStopUpdates( String busStopId ) {
-		if( busStopSubscriptions.containsKey( busStopId ) ) {
-			busStopSubscriptions.remove( busStopId );
-		}
+	public void unsubscribeToBusStopUpdates( 
+			String busStopName ) {
+		staticData.getBusStopIds( busStopName ).forEach( id -> {
+			if( busStopSubscriptions.containsKey( busStopName ) ) {
+				busStopSubscriptions.remove( busStopName );
+			}
+		} );
 	}
-	
 }

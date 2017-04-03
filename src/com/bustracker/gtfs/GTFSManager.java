@@ -11,7 +11,8 @@ import rx.functions.Action1;
 public interface GTFSManager {
 	
 	Subscription subscribeToBusStopUpdates( 
-			String busStopId,  Action1<? super Set<TripStop>> action );
+			String busStopName,
+			Action1<? super Set<TripStop>> action );
 	
-	void unsubscribeToBusStopUpdates( String busStopId );
+	void unsubscribeToBusStopUpdates( String busStopName );
 }
