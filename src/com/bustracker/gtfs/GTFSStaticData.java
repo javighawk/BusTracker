@@ -298,12 +298,12 @@ public class GTFSStaticData {
 	public Optional<String> getScheduledArrivalTimeFromStopID(
 	        String tripID, String stopID ) {
 		// Create a HashMap to execute query
-		Map<String, String> m1 = new HashMap<String, String>();
+		Map<String, String> m1 = new HashMap<>( );
 		m1.put("trip_id", tripID);
 		m1.put("stop_id", stopID);
 		
 		// Execute query
-		Set<Map<String, String>> m2 = getMapFromData(this.stop_times, (Map<String, String>) m1);
+		Set<Map<String, String>> m2 = getMapFromData(this.stop_times, m1 );
 		
 		// Check if we have retrieved more than one Trip
 		if( m2.size() != 1 ) {
