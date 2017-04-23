@@ -12,6 +12,8 @@ import java.util.stream.Stream;
 
 public class GTFSStaticData {
 
+    private final String pathToGtfsFiles;
+
 	/* Sets of maps storing the information from the static GTFS feed */
     private Set<Map<String, String>> agency = new HashSet<>();
 	private Set<Map<String, String>> routes = new HashSet<>();
@@ -21,23 +23,36 @@ public class GTFSStaticData {
 	private Set<Map<String, String>> calendar = new HashSet<>();
 	private Set<Map<String, String>> calendar_dates = new HashSet<>();
 	
-	
-	/*
-	 * Parse all GTFS data from txt files
-	 * @param path Path to the txt files containing the GTFS static data
-	 */
-	public void parseFromPath(String path){
+	public GTFSStaticData( String path ) {
+	    pathToGtfsFiles = path;
+	    parseFromPath();
+    }
+
+	private void parseFromPath(){
 		// Parse agency, routes, stop times, stops and trips
-		parse(Paths.get(path, "agency.txt").toString(), this.agency);
-		parse(Paths.get(path, "routes.txt").toString(), this.routes);
-		parse(Paths.get(path, "stop_times.txt").toString(), this.stop_times);
-		parse(Paths.get(path, "stops.txt").toString(), this.stops);
-		parse(Paths.get(path, "trips.txt").toString(), this.trips);
-		parse(Paths.get(path, "calendar.txt").toString(), this.calendar);
-		parse(Paths.get(path, "calendar_dates.txt").toString(), this.calendar_dates);
+		parse( Paths.get(
+		        pathToGtfsFiles, "agency.txt").toString(),
+                this.agency);
+		parse( Paths.get(
+		        pathToGtfsFiles, "routes.txt").toString(),
+                this.routes);
+		parse( Paths.get(
+		        pathToGtfsFiles, "stop_times.txt").toString(),
+                this.stop_times);
+		parse( Paths.get(
+		        pathToGtfsFiles, "stops.txt").toString(),
+                this.stops);
+		parse( Paths.get(
+		        pathToGtfsFiles, "trips.txt").toString(),
+                this.trips);
+		parse( Paths.get(
+		        pathToGtfsFiles, "calendar.txt").toString(),
+                this.calendar);
+		parse( Paths.get(
+		        pathToGtfsFiles, "calendar_dates.txt").toString(),
+                this.calendar_dates);
 	}
-	
-	
+
 	/*
 	 * Parse data from GTFS static feed
 	 * @param filename Path to the text file
