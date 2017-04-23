@@ -32,9 +32,12 @@ public class GTFSManager {
 			String sourceURL, 
 			Duration taskPeriod, 
 			GTFSStaticData staticData,
-			ScheduledExecutorService executorService )
-					throws MalformedURLException {
-		this.url = new URL(sourceURL);
+			ScheduledExecutorService executorService ) {
+		try {
+			this.url = new URL( sourceURL );
+		} catch( MalformedURLException e ) {
+			throw new IllegalArgumentException( "Bad URL", e );
+		}
 		this.staticData = staticData;
 		executorService.scheduleAtFixedRate( 
 				this::task,
