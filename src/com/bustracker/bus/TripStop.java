@@ -1,29 +1,119 @@
 package com.bustracker.bus;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 
-import rx.Observable;
+public class TripStop implements Comparable<TripStop> {
 
-public interface TripStop extends Comparable<TripStop> {
+	private final String tripId;
+	private final String busLine;
+	private final String busStopId;
+	private final LocalTime scheduledArrival;
+	private Duration delay;
+	private boolean isRealTime = false;
 	
-	String getTripId();
+	public TripStop( 
+			String tripId,
+			String busLine,
+			String busStopId,
+			LocalTime scheduledArrival,
+			Duration delay ) {
+		this.tripId = tripId;
+		this.busLine = busLine;
+		this.busStopId = busStopId;
+		this.scheduledArrival = scheduledArrival;
+		this.delay = delay;
+	}
 	
-	String getBusLine();
-	
-	String getBusStopId();
-	
-	LocalDateTime getScheduledArrivalTime();
+	public TripStop( 
+			String tripId,
+			String busLine,
+			String busStopId,
+			String scheduledArrivalTime,
+			Duration delay ) {
+		this( 
+				tripId, 
+				busLine,
+				busStopId,
+				parseLocalTimeFromString( scheduledArrivalTime ),
+				delay );
+	}
 
-	long getDelay();
+	private static LocalTime parseLocalTimeFromString( String time ) {
+		try {
+			return LocalTime.parse( time );
+		} catch( DateTimeParseException e ) {
+			int hour = Integer.parseInt( time.substring( 0,2 ) ) - 24;
+			return LocalTime.parse(
+					String.format( "%02d", hour ) + time.substring( 2 ) );
+		}
+	}
 	
-	LocalDateTime getRealArrivalTime();
-	
-	Observable<TripStop> getDelayUpdateEvents();
-	
-	Observable<TripStop> getTrackingTimeoutEvents();
+	public String getTripId() {
+		return tripId;
+	}
 
-	void setDelay( long delay );
+	public String getBusLine() {
+		return busLine;
+	}
 	
-	boolean isTrackingTimedOut();
+	public String getBusStopId() {
+		return busStopId;
+	}
+
+	public LocalTime getScheduledArrivalTime() {
+		return scheduledArrival;
+	}
 	
+	public LocalTime getRealArrivalTime() {
+		return scheduledArrival.plus( delay );
+	}
+
+	public void setDelay( Duration delay ) {
+		this.delay = delay;
+	}
+
+	public Duration getDelay( ) {
+		return delay;
+	}
+
+	public void setIsRealTime( boolean realTime ) {
+		this.isRealTime = realTime;
+	}
+
+	public boolean isRealTime() {
+		return isRealTime;
+	}
+
+	@Override
+	public boolean equals( Object obj ) {
+		if( !(obj instanceof TripStop) ) {
+			return false;
+		}
+		TripStop other = (TripStop) obj;
+
+		return
+				tripId.equals( other.getTripId() ) &&
+				busStopId.equals( other.getBusStopId() );
+	}
+
+	@Override
+	public int compareTo( TripStop o ) {
+		return getRealArrivalTime().compareTo(
+				o.getRealArrivalTime() );
+	}
+
+	@Override
+	public String toString() {
+		LocalTime realArrivalTime = getRealArrivalTime( );
+		return String.format( "TripStop=[tripId=%s, busLine=%s, busStopId=%s, " +
+				"schedArrivalTime=%s, " +
+				"realArrivalTime=%s, " +
+				"delay=%d, realTime=%b]",
+				tripId, busLine, busStopId,
+				LocalTime.from( scheduledArrival ),
+				LocalTime.from( realArrivalTime ),
+				delay.getSeconds(), isRealTime );
+	}
 }

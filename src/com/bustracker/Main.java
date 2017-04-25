@@ -39,7 +39,7 @@ public class Main {
 		busStopManager.addBusStopToTrack(
 				busStopName );
 		busStopIds.forEach(
-				bsid -> executorService.schedule(
+				bsid -> executorService.scheduleAtFixedRate(
 						() -> busStopManager.getBusStop( bsid ).ifPresent(
 								bstop -> {
 										System.out.println(
@@ -47,12 +47,13 @@ public class Main {
 										System.out.println(
 												bstop.getBusStopId( ) );
 										System.out.println(
-												bstop.getUpcomingBus( 0 ) );
+												bstop.getUpcomingBus( 0 ).orElse( null ) );
 										System.out.println(
-												bstop.getUpcomingBus( 1 ) );
+												bstop.getUpcomingBus( 1 ).orElse( null ) );
 										System.out.println(
-												bstop.getUpcomingBus( 2 ) );
+												bstop.getUpcomingBus( 2 ).orElse( null ) );
 								} ),
+						0,
 						10, TimeUnit.SECONDS ) );
 	}
 

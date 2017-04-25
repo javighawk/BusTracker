@@ -6,6 +6,8 @@ import com.google.common.collect.Sets;
 import com.google.transit.realtime.GtfsRealtime.FeedEntity;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Subscription;
 import rx.functions.Action1;
 import rx.subjects.PublishSubject;
@@ -16,10 +18,10 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 public class GTFSManager {
 	
@@ -27,6 +29,7 @@ public class GTFSManager {
 	private final GTFSStaticData staticData;
 	private Map<String, PublishSubject<Set<TripStop>>> busStopSubscriptions = 
 			new HashMap<>();
+	private final Logger LOG = LoggerFactory.getLogger( GTFSManager.class );
 
 	public GTFSManager( 
 			String sourceURL, 
@@ -47,15 +50,19 @@ public class GTFSManager {
 	}
 	
 	private void task() {
+		LOG.info( "Start GTFS retrieval task" );
+		LOG.info( "Bus stops being tracked: {}", busStopSubscriptions.keySet() );
 		FeedMessage feed;
 		try {
 			feed = FeedMessage.parseFrom( url.openStream() );
 			Map<String, Set<TripStop>> updates = 
 					getBusStopToTripStopsFromFeed( feed );
+			LOG.info( "New updates for bus stops {}", updates.keySet() );
 			notifySubscriptions( updates );
 		} catch( IOException e ) {
-			e.printStackTrace();
+			LOG.error( "Error on GTFS Task: {}", e.getMessage() );
 		}
+		LOG.info( "Done GTFS Task" );
 	}
 	
 	private void notifySubscriptions( Map<String, Set<TripStop>> updates ) {
@@ -66,7 +73,7 @@ public class GTFSManager {
 			FeedMessage feed ) {
 		Map<String, Set<TripStop>> ret = Maps.newHashMap();
 		for( FeedEntity entity : feed.getEntityList() ) {
-			if( entity.hasTripUpdate() ) {								  
+			if( entity.hasTripUpdate() ) {
 				Map<String, Set<TripStop>> map =
 						getBusStopIdToTripStopsFromTripUpdate( 
 								entity.getTripUpdate() );
@@ -94,36 +101,44 @@ public class GTFSManager {
 			TripUpdate tripUpdate ) {
 		Map<String, Set<TripStop>> ret = Maps.newHashMap();
 		String tripId = tripUpdate.getTrip().getTripId();
-		Stream<TripUpdate.StopTimeUpdate> updatesStream =
-				tripUpdate.getStopTimeUpdateList( ).stream( ).filter(
-						stu -> busStopSubscriptions.containsKey(
-								stu.getStopId( ) ) );
-		staticData.getBusNumberFromRoute( tripUpdate.getTrip().getRouteId() )
-				.ifPresent( busNumber ->
-					updatesStream.forEach(
-							stu -> addUpdateIfSchedArrivalIsPresent(
-									ret, tripId, busNumber, stu ) ) );
+		Optional<String> busNumberOpt =
+				staticData.getBusNumberFromTrip( tripId );
+		if( busNumberOpt.isPresent() ) {
+			tripUpdate.getStopTimeUpdateList( ).stream( ).filter(
+					stu1 -> busStopSubscriptions.containsKey(
+							stu1.getStopId( ) ) ).forEach(
+					stu -> addStopUpdateToMap(
+							tripId, busNumberOpt.get(), stu, ret ) );
+		} else {
+			LOG.error(
+					"Could not match tripId=" +
+							tripId + " to a bus number (outdated GTFS data?)" );
+		}
 		return ret;
 	}
 
-	private void addUpdateIfSchedArrivalIsPresent(
-			Map<String, Set<TripStop>> ret,
+	private void addStopUpdateToMap(
 			String tripId,
 			String busNumber,
-			TripUpdate.StopTimeUpdate stu ) {
+			TripUpdate.StopTimeUpdate stopTimeUpdate,
+			Map<String, Set<TripStop>> ret ) {
+		LOG.info( "Adding update: busNumber={}, stopTimeUpdate={}",
+				tripId, stopTimeUpdate );
 		staticData.getScheduledArrivalTimeFromStopID(
-                tripId, stu.getStopId() ).ifPresent(
-                        time -> addToMap(
-                                ret, new TripStop(
-                                        tripId,
-                                        busNumber,
-                                        stu.getStopId(),
-                                        time,
-                                        Duration.ofSeconds(
-                                                stu.getArrival().getDelay() ) ) ) );
+				tripId, stopTimeUpdate.getStopId() ).ifPresent(
+						time -> addToMap(
+								ret, new TripStop(
+										tripId,
+										busNumber,
+										stopTimeUpdate.getStopId(),
+										time,
+										Duration.ofSeconds(
+												stopTimeUpdate
+														.getArrival()
+														.getDelay() ) ) ) );
 	}
 
-	private void addToMap( 
+	private void addToMap(
 			Map<String, Set<TripStop>> map,
 			TripStop tripStop ) {
 		String busStopId = tripStop.getBusStopId();
@@ -138,6 +153,7 @@ public class GTFSManager {
 	public Subscription subscribeToBusStopUpdates(
 			String busStopId,
 			Action1<? super Set<TripStop>> action ) {
+	    LOG.info( "Subscribing bus stop ID {}", busStopId );
 		PublishSubject<Set<TripStop>> subject = PublishSubject.create();
 		busStopSubscriptions.put( busStopId, subject );
 		return subject.asObservable().subscribe( action );

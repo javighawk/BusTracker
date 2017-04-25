@@ -23,7 +23,9 @@ public class BusStop {
 	}
 	
 	public void setNewUpdates( Set<TripStop> tripStops ) {
-	    Map<String, Duration> tripIdToDelay = Maps.newHashMap();
+		System.out.println( "New updates for " + busStopId );
+		System.out.println( tripStops );
+		Map<String, Duration> tripIdToDelay = Maps.newHashMap();
 	    tripStops.forEach(
 	            ts -> tripIdToDelay.put( ts.getTripId(), ts.getDelay() ) );
 	    for( TripStop ts : allTripStops ) {
@@ -42,7 +44,6 @@ public class BusStop {
 				.stream( )
 				.filter(
 						ts -> ts.getRealArrivalTime( )
-								.toLocalTime( )
 								.compareTo( LocalTime.now( ) ) >= 0 )
 				.limit( busIndex + 1 )
 				.max( TripStop::compareTo );

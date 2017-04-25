@@ -2,6 +2,8 @@ package com.bustracker.gtfs;
 
 import com.bustracker.bus.TripStop;
 import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,6 +24,7 @@ public class GTFSStaticData {
 	private Set<Map<String, String>> trips = new HashSet<>();
 	private Set<Map<String, String>> calendar = new HashSet<>();
 	private Set<Map<String, String>> calendar_dates = new HashSet<>();
+	private final Logger LOG = LoggerFactory.getLogger( GTFSStaticData.class );
 	
 	public GTFSStaticData( String path ) {
 	    pathToGtfsFiles = path;
@@ -59,7 +62,9 @@ public class GTFSStaticData {
 	 * @param map Set of maps storing the info
 	 */
     private void parse( String filepath, Set<Map<String, String>> map ){
-		// Declare header of the file as string array, where each element is
+    	LOG.info( "Parsing file {}", filepath );
+
+        // Declare header of the file as string array, where each element is
 		// each of the keys of the maps
 		String[] keys;
 		
@@ -218,19 +223,15 @@ public class GTFSStaticData {
         Set<Map<String, String>> stopTimes =
                 getMapFromData( this.stop_times, "stop_id", busStopId );
 		for( Map<String, String> map : stopTimes ) {
-			try {
-				String tripId = map.get( "trip_id" );
-                getBusNumberFromTrip( tripId ).ifPresent(
-                        bus -> tripStops.add(
-                                new TripStop(
-                                        tripId,
-                                        bus,
-                                        map.get( "stop_id" ),
-                                        map.get( "arrival_time" ),
-                                        Duration.ZERO ) ) );
-			} catch( Exception e ) {
-				e.printStackTrace();
-			}
+			String tripId = map.get( "trip_id" );
+			getBusNumberFromTrip( tripId ).ifPresent(
+					bus -> tripStops.add(
+							new TripStop(
+									tripId,
+									bus,
+									map.get( "stop_id" ),
+									map.get( "arrival_time" ),
+									Duration.ZERO ) ) );
 		}
 		return tripStops;
 	}
@@ -290,8 +291,9 @@ public class GTFSStaticData {
 	 */
 	public Optional<String> getBusNumberFromRoute( String routeID ) {
 		// Run query
-		Set<Map<String, String>> m2 = getMapFromData(this.routes, "route_id", routeID);
-		
+		Set<Map<String, String>> m2 = getMapFromData(
+		        this.routes, "route_id", routeID );
+
 		// Check if we have retrieved more than one Trip
 		if( m2.size() != 1 ) {
 			return Optional.empty();
@@ -373,7 +375,7 @@ public class GTFSStaticData {
 	 *         the service is working, or empty Optional if the given trip ID
 	 *         maps to multiple or none entries on the calendar table
 	 */
-	public Optional<Map<String, String>> getCaledarFromTripID(String tripID) {
+	public Optional<Map<String, String>> getCaledarFromTripID( String tripID ) {
 		// Retrieve the trip entry for the given Service ID
 		Set<Map<String, String>> entry = getMapFromData(this.trips, "trip_id", tripID);
 		
