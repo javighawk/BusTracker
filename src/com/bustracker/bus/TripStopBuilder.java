@@ -9,7 +9,7 @@ public class TripStopBuilder {
     private String tripId;
     private String busLine;
     private String busStopId;
-    private Optional<LocalTime> scheduledArrival;
+    private Optional<LocalTime> scheduledArrival = Optional.empty();
     private Duration delay = Duration.ZERO;
     private String scheduledArrivalString;
 
