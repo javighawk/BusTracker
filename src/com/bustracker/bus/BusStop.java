@@ -42,13 +42,18 @@ public class BusStop {
 	public Optional<TripStop> getUpcomingBus( int busIndex ) {
 		return new TreeSet<>( allTripStops )
 				.stream( )
-				.filter(
-						ts -> ts.getRealArrivalTime( )
-								.compareTo( LocalTime.now( ) ) >= 0 )
+				.filter( this::isTripStopPast )
 				.limit( busIndex + 1 )
 				.max( TripStop::compareTo );
 	}
-	
+
+	private Boolean isTripStopPast( TripStop ts ) {
+		return ts.getRealArrivalTime().map(
+				t -> t.compareTo(
+						LocalTime.now() ) >= 0 )
+				.orElse( Boolean.FALSE );
+	}
+
 	public String getBusStopId() {
 		return busStopId;
 	}

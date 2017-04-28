@@ -9,7 +9,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class GTFSStaticData {
@@ -226,12 +231,7 @@ public class GTFSStaticData {
 			String tripId = map.get( "trip_id" );
 			getBusNumberFromTrip( tripId ).ifPresent(
 					bus -> tripStops.add(
-							new TripStop(
-									tripId,
-									bus,
-									map.get( "stop_id" ),
-									map.get( "arrival_time" ),
-									Duration.ZERO ) ) );
+                            new TripStopBuilder().withTripId(tripId).withBusLine(bus).withBusStopId(map.get("stop_id")).withScheduledArrivalTime(map.get("arrival_time")).withDelay(Duration.ZERO).createTripStop()) );
 		}
 		return tripStops;
 	}

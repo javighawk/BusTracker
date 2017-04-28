@@ -3,30 +3,31 @@ package com.bustracker.bus;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.Optional;
 
 public class TripStop implements Comparable<TripStop> {
 
 	private final String tripId;
-	private final String busLine;
+	private final Optional<String> busLine;
 	private final String busStopId;
-	private final LocalTime scheduledArrival;
+	private final Optional<LocalTime> scheduledArrival;
 	private Duration delay;
 	private boolean isRealTime = false;
-	
-	public TripStop( 
+
+	public TripStop(
 			String tripId,
 			String busLine,
 			String busStopId,
 			LocalTime scheduledArrival,
 			Duration delay ) {
 		this.tripId = tripId;
-		this.busLine = busLine;
+		this.busLine = Optional.ofNullable( busLine );
 		this.busStopId = busStopId;
-		this.scheduledArrival = scheduledArrival;
+		this.scheduledArrival = Optional.ofNullable( scheduledArrival );
 		this.delay = delay;
 	}
 	
-	public TripStop( 
+	public TripStop(
 			String tripId,
 			String busLine,
 			String busStopId,
@@ -54,7 +55,7 @@ public class TripStop implements Comparable<TripStop> {
 		return tripId;
 	}
 
-	public String getBusLine() {
+	public Optional<String> getBusLine() {
 		return busLine;
 	}
 	
@@ -62,12 +63,13 @@ public class TripStop implements Comparable<TripStop> {
 		return busStopId;
 	}
 
-	public LocalTime getScheduledArrivalTime() {
+	public Optional<LocalTime> getScheduledArrivalTime() {
 		return scheduledArrival;
 	}
 	
-	public LocalTime getRealArrivalTime() {
-		return scheduledArrival.plus( delay );
+	public Optional<LocalTime> getRealArrivalTime() {
+		return scheduledArrival.map(
+		        t -> t.plus( delay ) );
 	}
 
 	public void setDelay( Duration delay ) {
@@ -100,20 +102,29 @@ public class TripStop implements Comparable<TripStop> {
 
 	@Override
 	public int compareTo( TripStop o ) {
-		return getRealArrivalTime().compareTo(
-				o.getRealArrivalTime() );
+	    if( !getRealArrivalTime().isPresent() ||
+            !o.getRealArrivalTime().isPresent() ) {
+	        throw new UnsupportedOperationException( "Arrival time not set. Cannot compare" );
+        } else {
+            return getRealArrivalTime().get().compareTo(
+                    o.getRealArrivalTime().get() );
+        }
 	}
 
 	@Override
 	public String toString() {
-		LocalTime realArrivalTime = getRealArrivalTime( );
-		return String.format( "TripStop=[tripId=%s, busLine=%s, busStopId=%s, " +
+        return String.format( "TripStop=[tripId=%s, busLine=%s, busStopId=%s, " +
 				"schedArrivalTime=%s, " +
 				"realArrivalTime=%s, " +
 				"delay=%d, realTime=%b]",
 				tripId, busLine, busStopId,
-				LocalTime.from( scheduledArrival ),
-				LocalTime.from( realArrivalTime ),
-				delay.getSeconds(), isRealTime );
+				scheduledArrival.orElse( null ),
+                getRealArrivalTime().orElse( null ),
+				delay.getSeconds(),
+                isRealTime );
 	}
+
+	public static TripStopBuilder builder() {
+	    return new TripStopBuilder();
+    }
 }

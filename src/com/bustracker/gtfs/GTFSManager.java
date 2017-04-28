@@ -17,9 +17,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +26,7 @@ public class GTFSManager {
 	
 	private final URL url;
 	private final GTFSStaticData staticData;
-	private Map<String, PublishSubject<Set<TripStop>>> busStopSubscriptions = 
+	private Map<String, PublishSubject<Set<TripStop>>> busStopSubscriptions =
 			new HashMap<>();
 	private final Logger LOG = LoggerFactory.getLogger( GTFSManager.class );
 
@@ -55,7 +54,7 @@ public class GTFSManager {
 		FeedMessage feed;
 		try {
 			feed = FeedMessage.parseFrom( url.openStream() );
-			Map<String, Set<TripStop>> updates = 
+			Map<String, Set<TripStop>> updates =
 					getBusStopToTripStopsFromFeed( feed );
 			LOG.info( "New updates for bus stops {}", updates.keySet() );
 			notifySubscriptions( updates );
@@ -69,7 +68,7 @@ public class GTFSManager {
 		updates.forEach( ( k, v ) -> busStopSubscriptions.get( k ).onNext( v ) );
 	}
 
-	private Map<String, Set<TripStop>> getBusStopToTripStopsFromFeed( 
+	private Map<String, Set<TripStop>> getBusStopToTripStopsFromFeed(
 			FeedMessage feed ) {
 		Map<String, Set<TripStop>> ret = Maps.newHashMap();
 		for( FeedEntity entity : feed.getEntityList() ) {
@@ -84,7 +83,7 @@ public class GTFSManager {
 	}
 	
 	private void addMap2ToMap1(
-			Map<String, Set<TripStop>> map1, 
+			Map<String, Set<TripStop>> map1,
 			Map<String, Set<TripStop>> map2) {
 		map2.forEach( ( k, v ) -> {
 			if( map1.containsKey( k ) ) {
@@ -101,48 +100,35 @@ public class GTFSManager {
 			TripUpdate tripUpdate ) {
 		Map<String, Set<TripStop>> ret = Maps.newHashMap();
 		String tripId = tripUpdate.getTrip().getTripId();
-		Optional<String> busNumberOpt =
-				staticData.getBusNumberFromTrip( tripId );
-		if( busNumberOpt.isPresent() ) {
-			tripUpdate.getStopTimeUpdateList( ).stream( ).filter(
-					stu1 -> busStopSubscriptions.containsKey(
-							stu1.getStopId( ) ) ).forEach(
-					stu -> addStopUpdateToMap(
-							tripId, busNumberOpt.get(), stu, ret ) );
-		} else {
-			LOG.error(
-					"Could not match tripId=" +
-							tripId + " to a bus number (outdated GTFS data?)" );
-		}
+		tripUpdate.getStopTimeUpdateList().stream().filter(
+				stu1 -> busStopSubscriptions.containsKey(
+						stu1.getStopId() ) ).forEach(
+								stu -> addStopUpdateToMap(
+										tripId, stu, ret )
+				);
 		return ret;
 	}
 
 	private void addStopUpdateToMap(
 			String tripId,
-			String busNumber,
-			TripUpdate.StopTimeUpdate stopTimeUpdate,
+			TripUpdate.StopTimeUpdate stu,
 			Map<String, Set<TripStop>> ret ) {
 		LOG.info( "Adding update: busNumber={}, stopTimeUpdate={}",
-				tripId, stopTimeUpdate );
-		staticData.getScheduledArrivalTimeFromStopID(
-				tripId, stopTimeUpdate.getStopId() ).ifPresent(
-						time -> addToMap(
-								ret, new TripStop(
-										tripId,
-										busNumber,
-										stopTimeUpdate.getStopId(),
-										time,
-										Duration.ofSeconds(
-												stopTimeUpdate
-														.getArrival()
-														.getDelay() ) ) ) );
+				tripId, stu );
+		TripStop tripStop = TripStop.builder()
+				.withTripId( tripId )
+				.withBusStopId( stu.getStopId() )
+				.withDelay( Duration.ofSeconds(
+						stu.getArrival().getDelay() ) )
+				.build();
+		addToMap( ret, tripStop );
 	}
 
 	private void addToMap(
 			Map<String, Set<TripStop>> map,
 			TripStop tripStop ) {
 		String busStopId = tripStop.getBusStopId();
-		Set<TripStop> tripStops = 
+		Set<TripStop> tripStops =
 				map.containsKey( busStopId ) ? 
 						map.get( busStopId ) : 
 						Sets.newHashSet() ;
