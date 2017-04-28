@@ -231,7 +231,13 @@ public class GTFSStaticData {
 			String tripId = map.get( "trip_id" );
 			getBusNumberFromTrip( tripId ).ifPresent(
 					bus -> tripStops.add(
-                            new TripStopBuilder().withTripId(tripId).withBusLine(bus).withBusStopId(map.get("stop_id")).withScheduledArrivalTime(map.get("arrival_time")).withDelay(Duration.ZERO).createTripStop()) );
+                            TripStop.builder()
+                                    .withTripId( tripId )
+                                    .withBusLine( bus )
+                                    .withBusStopId( map.get( "stop_id" ) )
+                                    .withScheduledArrival( map.get( "arrival_time" ) )
+                                    .withDelay( Duration.ZERO )
+                                    .build()) );
 		}
 		return tripStops;
 	}
