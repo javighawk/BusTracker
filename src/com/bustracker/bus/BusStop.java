@@ -1,5 +1,6 @@
 package com.bustracker.bus;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import rx.subjects.PublishSubject;
@@ -40,14 +41,20 @@ public class BusStop {
 	}
 
 	public Optional<TripStop> getUpcomingBus( int busIndex ) {
-		return new TreeSet<>( allTripStops )
-				.stream( )
-				.filter( this::isTripStopPast )
-				.limit( busIndex + 1 )
-				.max( TripStop::compareTo );
+        List<TripStop> filteredTripStops = Lists.newArrayList();
+	    for( TripStop t : allTripStops ) {
+	        if( isTripStopFutureOrPresent( t ) ) {
+                filteredTripStops.add( t );
+            }
+        }
+        if( filteredTripStops.size() > busIndex ) {
+	        Collections.sort( filteredTripStops );
+            return Optional.of( filteredTripStops.get( busIndex ) );
+        }
+        return Optional.empty();
 	}
 
-	private Boolean isTripStopPast( TripStop ts ) {
+	private boolean isTripStopFutureOrPresent( TripStop ts ) {
 		return ts.getRealArrivalTime().map(
 				t -> t.compareTo(
 						LocalTime.now() ) >= 0 )

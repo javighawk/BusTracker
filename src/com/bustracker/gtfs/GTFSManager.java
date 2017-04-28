@@ -65,6 +65,7 @@ public class GTFSManager {
 	}
 	
 	private void notifySubscriptions( Map<String, Set<TripStop>> updates ) {
+	    LOG.info( "Notify bus stops IDs=" + busStopSubscriptions.keySet() );
 		updates.forEach( ( k, v ) -> busStopSubscriptions.get( k ).onNext( v ) );
 	}
 
@@ -113,7 +114,7 @@ public class GTFSManager {
 			String tripId,
 			TripUpdate.StopTimeUpdate stu,
 			Map<String, Set<TripStop>> ret ) {
-		LOG.info( "Adding update: busNumber={}, stopTimeUpdate={}",
+		LOG.info( "Adding update: tripId={}, stopTimeUpdate={}",
 				tripId, stu );
 		TripStop tripStop = TripStop.builder()
 				.withTripId( tripId )
