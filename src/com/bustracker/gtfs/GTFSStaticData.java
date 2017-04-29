@@ -8,13 +8,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.DayOfWeek;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GTFSStaticData {
@@ -228,28 +225,42 @@ public class GTFSStaticData {
         Set<Map<String, String>> stopTimes =
                 getMapFromData( this.stop_times, "stop_id", busStopId );
 		for( Map<String, String> map : stopTimes ) {
-			String tripId = map.get( "trip_id" );
-			getBusNumberFromTrip( tripId ).ifPresent(
-					bus -> tripStops.add(
-                            TripStop.builder()
-                                    .withTripId( tripId )
-                                    .withBusLine( bus )
-                                    .withBusStopId( map.get( "stop_id" ) )
-                                    .withScheduledArrival( map.get( "arrival_time" ) )
-                                    .withDelay( Duration.ZERO )
-                                    .build()) );
+            addTripStopToSet(
+                    map.get( "trip_id" ),
+                    map.get( "stop_id" ),
+                    map.get( "arrival_time" ),
+                    tripStops );
 		}
 		return tripStops;
 	}
-	
-	
-	/*
-	 * Get trip direction given a trip ID
-	 * @param tripID Trip ID in string
-	 * @return Optional containing the trip direction as a string as specified
-	 *         in the GTFS static data, or empty Optional if the given trip ID
-	 *         maps to more than 1 trip or none.
-	 */
+
+    private void addTripStopToSet(
+            String tripId,
+            String stopId,
+            String arrivalTime,
+            Set<TripStop> set ) {
+        Optional<Set<DayOfWeek>> weekdaysOpt =
+                getOperatingWeekdaysFromTripID( tripId );
+        getBusNumberFromTrip( tripId ).ifPresent(
+                bus -> weekdaysOpt.ifPresent( w -> set.add(
+                        TripStop.builder( )
+                                .withTripId( tripId )
+                                .withBusLine( bus )
+                                .withBusStopId( stopId )
+                                .withScheduledArrival( arrivalTime )
+                                .withOperatingWeekdays( w )
+                                .withDelay( Duration.ZERO )
+                                .build( ) ) ) );
+    }
+
+
+    /*
+     * Get trip direction given a trip ID
+     * @param tripID Trip ID in string
+     * @return Optional containing the trip direction as a string as specified
+     *         in the GTFS static data, or empty Optional if the given trip ID
+     *         maps to more than 1 trip or none.
+     */
 	public Optional<String> getTripDirection(String tripID) {
 		// Run query
 		Set<Map<String, String>> m2 = getMapFromData(
@@ -336,15 +347,21 @@ public class GTFSStaticData {
 		// Return scheduled time as String
 		return Optional.of( m2.iterator().next().get( "arrival_time" ) );
 	}
+
+	public Optional<Set<DayOfWeek>> getOperatingWeekdaysFromTripID(
+	        String tripId ) {
+	    Set<Map<String, String>> entry = getMapFromData(
+	            this.trips, "trip_id", tripId );
+
+        if( entry.size() != 1 ) {
+            return Optional.empty();
+        }
+
+        return getOperatingWeekdaysFromServiceID(
+                entry.iterator().next().get( "service_id" ) );
+    }
 	
-    /*
-     * Get the working days for a given service ID
-     * @param serciceID Service ID as a String
-     * @return Optional containing the map containing true on the days where
-     *         the service is working, or empty Optional if the given serviceID
-     *         maps to multiple or none entries on the calendar table
-     */
-	public Optional<Map<String, Boolean>> getDatesFromServiceID(
+	private Optional<Set<DayOfWeek>> getOperatingWeekdaysFromServiceID(
 	        String serviceID ) {
 		// Retrieve the calendar entry for the given Service ID
 		Set<Map<String, String>> entry = getMapFromData(
@@ -358,22 +375,13 @@ public class GTFSStaticData {
 		// Retrieve only component of the Set we have obtained
 		Map<String, String> cal = entry.iterator().next();
 		
-		// Initialize returning Map
-		Map<String, Boolean> ret = new HashMap<>( );
-		
-		// Add values to ret
-		ret.put("monday", cal.get("monday").equals("1"));
-		ret.put("tuesday", cal.get("tuesday").equals("1"));
-		ret.put("wednesday", cal.get("wednesday").equals("1"));
-		ret.put("thursday", cal.get("thursday").equals("1"));
-		ret.put("friday", cal.get("friday").equals("1"));
-		ret.put("saturday", cal.get("saturday").equals("1"));
-		ret.put("sunday", cal.get("sunday").equals("1"));
-		
+        Set<DayOfWeek> ret = Sets.newHashSet( DayOfWeek.values() )
+                .stream()
+                .filter( d -> cal.get( d.name().toLowerCase() ).equals( "1" ) )
+                .collect( Collectors.toSet() );
 		return Optional.of( ret );
 	}
-	
-	
+
 	/*
 	 * Get the calendar data for a given trip ID
 	 * @param tripID Trip ID as a String

@@ -30,13 +30,15 @@ public class BusStop {
 	}
 	
 	public void setNewUpdates( Set<TripStopUpdate> tripStopUpdates ) {
-	    LOG.info( "New updates for busStopId={}, tripStopUpdates{}",
+	    LOG.info( "New updates for busStopId={}, tripStopUpdates={}",
                 busStopId, tripStopUpdates );
         tripStopUpdates.forEach( tsu ->
             allTripStops.stream()
                     .filter( tsu::equalToTripStop )
-                    .forEach( tripStop -> tripStop.setDelay(
-                            tsu.getDelay() ) ) );
+                    .forEach( tripStop -> {
+                        tripStop.setDelay( tsu.getDelay() );
+                        LOG.info( "Updating delay on tripStop={}", tripStop );
+                    } ) );
 	}
 
 	public Optional<TripStop> getUpcomingBus( int busIndex ) {
