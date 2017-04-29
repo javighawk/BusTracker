@@ -30,7 +30,7 @@ public class BusStop {
 	}
 	
 	public void setNewUpdates( Set<TripStopUpdate> tripStopUpdates ) {
-	    LOG.info( "New updates for busStopId=%s, tripStopUpdates=%",
+	    LOG.info( "New updates for busStopId={}, tripStopUpdates{}",
                 busStopId, tripStopUpdates );
         tripStopUpdates.forEach( tsu ->
             allTripStops.stream()
