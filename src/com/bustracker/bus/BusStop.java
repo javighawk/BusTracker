@@ -55,10 +55,8 @@ public class BusStop {
 	}
 
 	private boolean isTripStopFutureOrPresent( TripStop ts ) {
-		return ts.getRealArrivalTime().map(
-				t -> t.compareTo(
-						LocalTime.now() ) >= 0 )
-				.orElse( Boolean.FALSE );
+		return ts.getRealArrivalTime().compareTo(
+						LocalTime.now() ) >= 0;
 	}
 
 	public String getBusStopId() {

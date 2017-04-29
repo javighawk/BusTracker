@@ -1,15 +1,12 @@
 package com.bustracker.bus;
 
 import java.time.Duration;
-import java.time.LocalTime;
-import java.util.Optional;
 
 public class TripStopBuilder {
 
     private String tripId;
     private String busLine;
     private String busStopId;
-    private Optional<LocalTime> scheduledArrival = Optional.empty();
     private Duration delay = Duration.ZERO;
     private String scheduledArrivalString;
 
@@ -31,11 +28,6 @@ public class TripStopBuilder {
         return this;
     }
 
-    public TripStopBuilder withScheduledArrival(LocalTime scheduledArrival) {
-        this.scheduledArrival = Optional.of( scheduledArrival );
-        return this;
-    }
-
     public TripStopBuilder withDelay(Duration delay) {
         this.delay = delay;
         return this;
@@ -51,9 +43,7 @@ public class TripStopBuilder {
                 tripId,
                 busLine,
                 busStopId,
-                scheduledArrival.map(
-                        LocalTime::toString ).orElse(
-                                scheduledArrivalString ),
+                scheduledArrivalString,
                 delay);
     }
 }

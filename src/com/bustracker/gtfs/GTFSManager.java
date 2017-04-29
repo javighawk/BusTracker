@@ -83,20 +83,6 @@ public class GTFSManager {
 		return ret;
 	}
 	
-	private void addMap2ToMap1(
-			Map<String, Set<TripStop>> map1,
-			Map<String, Set<TripStop>> map2) {
-		map2.forEach( ( k, v ) -> {
-			if( map1.containsKey( k ) ) {
-				Set<TripStop> set = map1.get( k );
-				set.addAll( v );
-				map1.put( k, set );
-			} else {
-				map1.put( k, v );
-			}
-		});
-	}
-
 	private Map<String, Set<TripStop>> getBusStopIdToTripStopsFromTripUpdate(
 			TripUpdate tripUpdate ) {
 		Map<String, Set<TripStop>> ret = Maps.newHashMap();
@@ -123,6 +109,20 @@ public class GTFSManager {
 						stu.getArrival().getDelay() ) )
 				.build();
 		addToMap( ret, tripStop );
+	}
+
+	private void addMap2ToMap1(
+			Map<String, Set<TripStop>> map1,
+			Map<String, Set<TripStop>> map2) {
+		map2.forEach( ( k, v ) -> {
+			if( map1.containsKey( k ) ) {
+				Set<TripStop> set = map1.get( k );
+				set.addAll( v );
+				map1.put( k, set );
+			} else {
+				map1.put( k, v );
+			}
+		});
 	}
 
 	private void addToMap(
