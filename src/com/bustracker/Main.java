@@ -16,7 +16,7 @@ public class Main {
 	private static String gtfsPath = "gtfs/";
 	private static String gtfsURL = "http://apps2.saskatoon.ca/app/data/TripUpdate/TripUpdates.pb";
 	private static ScheduledExecutorService executorService;
-	
+
 	private static GTFSStaticData gtfsStaticData;
 	private static GTFSManager gtfsManager;
 	private static BusStopManager busStopManager;
@@ -58,6 +58,6 @@ public class Main {
 	}
 
 	private static ScheduledThreadPoolExecutor getNewThreadPool( ) {
-		return new ScheduledThreadPoolExecutor( 10 );
+		return new ScheduledThreadPoolExecutor( 5 );
 	}
 }

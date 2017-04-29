@@ -1,7 +1,6 @@
 package com.bustracker.gtfs;
 
-import com.bustracker.bus.TripStop;
-import com.google.common.collect.Maps;
+import com.bustracker.trip.TripStopUpdate;
 import com.google.common.collect.Sets;
 import com.google.transit.realtime.GtfsRealtime.FeedEntity;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
@@ -17,16 +16,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class GTFSManager {
 	
 	private final URL url;
 	private final GTFSStaticData staticData;
-	private Map<String, PublishSubject<Set<TripStop>>> busStopSubscriptions =
+	private Map<String, PublishSubject<Set<TripStopUpdate>>> busStopSubscriptions =
 			new HashMap<>();
 	private final Logger LOG = LoggerFactory.getLogger( GTFSManager.class );
 
@@ -51,97 +51,70 @@ public class GTFSManager {
 	private void task() {
 		LOG.info( "Start GTFS retrieval task" );
 		LOG.info( "Bus stops being tracked: {}", busStopSubscriptions.keySet() );
-		FeedMessage feed;
 		try {
-			feed = FeedMessage.parseFrom( url.openStream() );
-			Map<String, Set<TripStop>> updates =
-					getBusStopToTripStopsFromFeed( feed );
-			LOG.info( "New updates for bus stops {}", updates.keySet() );
-			notifySubscriptions( updates );
+			FeedMessage feed = getFeedMessageFromOnlineFeed();
+			Set<TripStopUpdate> tripStopUpdates =
+					getTripStopUpdatesFromFeedMessage( feed );
+			notifyAllSubscribers( tripStopUpdates );
 		} catch( IOException e ) {
 			LOG.error( "Error on GTFS Task: {}", e.getMessage() );
 		}
 		LOG.info( "Done GTFS Task" );
 	}
-	
-	private void notifySubscriptions( Map<String, Set<TripStop>> updates ) {
-	    LOG.info( "Notify bus stops IDs=" + busStopSubscriptions.keySet() );
-		updates.forEach( ( k, v ) -> busStopSubscriptions.get( k ).onNext( v ) );
+
+	private FeedMessage getFeedMessageFromOnlineFeed() throws IOException {
+		LOG.info( "Download feed message" );
+		return FeedMessage.parseFrom( url.openStream() );
 	}
 
-	private Map<String, Set<TripStop>> getBusStopToTripStopsFromFeed(
+	private void notifyAllSubscribers( Set<TripStopUpdate> tripStopUpdates ) {
+	    LOG.info( "Notify bus stops IDs=" + busStopSubscriptions.keySet() );
+	    busStopSubscriptions.forEach( ( bsid, subscription ) ->
+				notifySubscriber( bsid, subscription, tripStopUpdates ) );
+	}
+
+	private void notifySubscriber(
+			String busStopId,
+			PublishSubject<Set<TripStopUpdate>> subscription,
+			Set<TripStopUpdate> tripStopUpdates ) {
+		Set<TripStopUpdate> updates = tripStopUpdates
+				.stream( )
+				.filter( tsu -> tsu.getBusStopId( ).equals( busStopId ) )
+				.collect( Collectors.toSet( ) );
+		subscription.onNext( updates );
+	}
+
+	private Set<TripStopUpdate> getTripStopUpdatesFromFeedMessage(
 			FeedMessage feed ) {
-		Map<String, Set<TripStop>> ret = Maps.newHashMap();
+		Set<TripStopUpdate> tripStopUpdates = Sets.newHashSet();
 		for( FeedEntity entity : feed.getEntityList() ) {
 			if( entity.hasTripUpdate() ) {
-				Map<String, Set<TripStop>> map =
-						getBusStopIdToTripStopsFromTripUpdate( 
-								entity.getTripUpdate() );
-				addMap2ToMap1( ret, map );
+				tripStopUpdates.addAll(
+						getTripStopUpdatesFromGTFSTripUpdate(
+								entity.getTripUpdate() ) );
 			}
 		}
-		return ret;
+		return tripStopUpdates;
 	}
 	
-	private Map<String, Set<TripStop>> getBusStopIdToTripStopsFromTripUpdate(
+	private Set<TripStopUpdate> getTripStopUpdatesFromGTFSTripUpdate(
 			TripUpdate tripUpdate ) {
-		Map<String, Set<TripStop>> ret = Maps.newHashMap();
 		String tripId = tripUpdate.getTrip().getTripId();
-		tripUpdate.getStopTimeUpdateList().stream().filter(
+		return tripUpdate.getStopTimeUpdateList().stream().filter(
 				stu1 -> busStopSubscriptions.containsKey(
-						stu1.getStopId() ) ).forEach(
-								stu -> addStopUpdateToMap(
-										tripId, stu, ret )
-				);
-		return ret;
-	}
-
-	private void addStopUpdateToMap(
-			String tripId,
-			TripUpdate.StopTimeUpdate stu,
-			Map<String, Set<TripStop>> ret ) {
-		LOG.info( "Adding update: tripId={}, stopTimeUpdate={}",
-				tripId, stu );
-		TripStop tripStop = TripStop.builder()
-				.withTripId( tripId )
-				.withBusStopId( stu.getStopId() )
-				.withDelay( Duration.ofSeconds(
-						stu.getArrival().getDelay() ) )
-				.build();
-		addToMap( ret, tripStop );
-	}
-
-	private void addMap2ToMap1(
-			Map<String, Set<TripStop>> map1,
-			Map<String, Set<TripStop>> map2) {
-		map2.forEach( ( k, v ) -> {
-			if( map1.containsKey( k ) ) {
-				Set<TripStop> set = map1.get( k );
-				set.addAll( v );
-				map1.put( k, set );
-			} else {
-				map1.put( k, v );
-			}
-		});
-	}
-
-	private void addToMap(
-			Map<String, Set<TripStop>> map,
-			TripStop tripStop ) {
-		String busStopId = tripStop.getBusStopId();
-		Set<TripStop> tripStops =
-				map.containsKey( busStopId ) ? 
-						map.get( busStopId ) : 
-						Sets.newHashSet() ;
-		tripStops.add( tripStop );
-		map.put( busStopId, tripStops );
+						stu1.getStopId() ) )
+				.map( stu -> new TripStopUpdate(
+						tripId,
+						stu.getStopId(),
+						Duration.ofSeconds( stu.getArrival().getDelay() ) ) )
+				.collect( Collectors.toSet() );
 	}
 
 	public Subscription subscribeToBusStopUpdates(
 			String busStopId,
-			Action1<? super Set<TripStop>> action ) {
+			Action1<? super Set<TripStopUpdate>> action ) {
 	    LOG.info( "Subscribing bus stop ID {}", busStopId );
-		PublishSubject<Set<TripStop>> subject = PublishSubject.create();
+		PublishSubject<Set<TripStopUpdate>> subject = PublishSubject.create();
 		busStopSubscriptions.put( busStopId, subject );
 		return subject.asObservable().subscribe( action );
 	}

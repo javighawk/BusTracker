@@ -1,6 +1,8 @@
 package com.bustracker.bus;
 
 import com.bustracker.gtfs.GTFSManager;
+import com.bustracker.trip.TripStop;
+import com.bustracker.trip.TripStopUpdate;
 import com.google.common.collect.Sets;
 
 import java.util.Optional;
@@ -16,16 +18,19 @@ public class BusStopManager {
 	}
 
 	public void addBusStopToTrack( String busStopName ) {
-		gtfsManager.getStaticData().getBusStopIDs( busStopName ).forEach( bs -> {
-			Set<TripStop> trips =
-					gtfsManager
-							.getStaticData()
-							.getAllScheduledTripStopsFromBusStopId(
-									bs );
-			busStops.add( new BusStop( bs, trips ) );
-			gtfsManager.subscribeToBusStopUpdates(
-					bs,
-					tss -> onTripStopsUpdates( bs, tss ) );
+		gtfsManager.getStaticData().getBusStopIDs( busStopName ).forEach(
+				stopId -> {
+					Set<TripStop> trips =
+							gtfsManager
+									.getStaticData()
+									.getAllScheduledTripStopsFromBusStopId( stopId );
+					busStops.add( new BusStop( stopId, trips ) );
+					gtfsManager.subscribeToBusStopUpdates(
+							stopId,
+							tripStopUpdates ->
+									onNewTripStopsUpdates(
+											stopId,
+											tripStopUpdates ) );
 		} );
 	}
 
@@ -34,10 +39,10 @@ public class BusStopManager {
 				.forEach( gtfsManager::unsubscribeToBusStopUpdates );
 	}
 
-	private void onTripStopsUpdates( 
-			String busStopId, Set<TripStop> tss ) {
+	private void onNewTripStopsUpdates(
+			String busStopId, Set<TripStopUpdate> tripStopUpdates ) {
 		getBusStop( busStopId )
-		.ifPresent( bs -> bs.setNewUpdates( tss ) );
+		.ifPresent( busStop -> busStop.setNewUpdates( tripStopUpdates ) );
 	}
 
 	public Optional<BusStop> getBusStop( String busStopId ) {

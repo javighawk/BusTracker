@@ -1,6 +1,6 @@
 package com.bustracker.gtfs;
 
-import com.bustracker.bus.TripStop;
+import com.bustracker.trip.TripStop;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

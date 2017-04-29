@@ -1,4 +1,6 @@
-package com.bustracker.bus;
+package com.bustracker.trip;
+
+import com.bustracker.trip.thread.TripStopThreads;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -72,14 +74,18 @@ public class TripStop implements Comparable<TripStop> {
 
 	public void setDelay( Duration delay ) {
 		this.delay = delay;
+		this.isRealTime = true;
+		// KEEP FUTURE AS ATTRIBUTE
+		TripStopThreads.schedule( this::clearDelay );
+	}
+
+	private void clearDelay() {
+		this.delay = Duration.ZERO;
+		this.isRealTime = false;
 	}
 
 	public Duration getDelay( ) {
 		return delay;
-	}
-
-	public void setIsRealTime( boolean realTime ) {
-		this.isRealTime = realTime;
 	}
 
 	public boolean isRealTime() {

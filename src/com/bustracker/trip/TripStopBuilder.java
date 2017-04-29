@@ -1,4 +1,4 @@
-package com.bustracker.bus;
+package com.bustracker.trip;
 
 import java.time.Duration;
 
