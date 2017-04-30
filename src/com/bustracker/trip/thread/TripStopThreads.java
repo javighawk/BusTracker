@@ -11,9 +11,8 @@ public final class TripStopThreads {
             Executors.newScheduledThreadPool( 20 );
 
     public static ScheduledFuture<?> schedule( Runnable command ) {
-        return INSTANCE.scheduleAtFixedRate(
-                command,
-                0, 1, TimeUnit.MINUTES );
+        return INSTANCE.schedule(
+                command,1, TimeUnit.MINUTES );
     }
 
     private TripStopThreads() {
