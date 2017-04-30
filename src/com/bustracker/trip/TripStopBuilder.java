@@ -1,10 +1,6 @@
 package com.bustracker.trip;
 
-import com.google.common.collect.Sets;
-
-import java.time.DayOfWeek;
 import java.time.Duration;
-import java.util.Set;
 
 public class TripStopBuilder {
 
@@ -12,7 +8,7 @@ public class TripStopBuilder {
     private String busLine;
     private String busStopId;
     private Duration delay = Duration.ZERO;
-    private Set<DayOfWeek> operatingWeekdays = Sets.newHashSet();
+    private TripCalendar calendar;
     private String scheduledArrivalString;
 
     TripStopBuilder() {
@@ -33,9 +29,9 @@ public class TripStopBuilder {
         return this;
     }
 
-    public TripStopBuilder withOperatingWeekdays(
-            Set<DayOfWeek> operatingWeekdays) {
-        this.operatingWeekdays = operatingWeekdays;
+    public TripStopBuilder withTripCalendar(
+            TripCalendar calendar) {
+        this.calendar = calendar;
         return this;
     }
 
@@ -55,7 +51,7 @@ public class TripStopBuilder {
                 busLine,
                 busStopId,
                 scheduledArrivalString,
-                operatingWeekdays,
+                calendar,
                 delay);
     }
 }

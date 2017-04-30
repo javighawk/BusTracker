@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.subjects.PublishSubject;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -46,8 +46,9 @@ public class BusStop {
         // arrive at the same time, only one appears. Need to do the
         // filtering manually
         List<TripStop> filteredTripStops = Lists.newArrayList();
-	    for( TripStop t : allTripStops ) {
-	        if( isTripStopFutureOrPresent( t ) ) {
+		LocalDateTime now = LocalDateTime.now( );
+		for( TripStop t : allTripStops ) {
+			if( t.getRealArrivalDateTime().isAfter( now ) ) {
                 filteredTripStops.add( t );
             }
         }
@@ -56,11 +57,6 @@ public class BusStop {
             return Optional.of( filteredTripStops.get( busIndex ) );
         }
         return Optional.empty();
-	}
-
-	private boolean isTripStopFutureOrPresent( TripStop ts ) {
-		return ts.getRealArrivalTime().compareTo(
-						LocalTime.now() ) >= 0;
 	}
 
 	public String getBusStopId() {
