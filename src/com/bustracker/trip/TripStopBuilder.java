@@ -1,5 +1,7 @@
 package com.bustracker.trip;
 
+import com.bustracker.trip.calendar.TripCalendar;
+
 import java.time.Duration;
 
 public class TripStopBuilder {

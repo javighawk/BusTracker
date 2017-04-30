@@ -1,7 +1,8 @@
 package com.bustracker.gtfs;
 
-import com.bustracker.trip.TripCalendar;
+import com.bustracker.trip.calendar.TripCalendar;
 import com.bustracker.trip.TripStop;
+import com.bustracker.trip.calendar.TripCalendarBuilder;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -376,25 +377,41 @@ public class GTFSStaticData {
 		// Retrieve only component of the Set we have obtained
 		Map<String, String> cal = entry.iterator().next();
 
-		String calendarId = cal.get( "service_id" );
-		String startDate = cal.get( "start_date" );
-		String endDate = cal.get( "end_date" );
+        return getTripCalendarFromCalendarEntry( serviceID, cal );
+	}
+
+    private Optional<TripCalendar> getTripCalendarFromCalendarEntry(
+            String serviceID, Map<String, String> cal ) {
         Set<DayOfWeek> weekdays = Sets.newHashSet( DayOfWeek.values() )
                 .stream()
                 .filter( d -> cal.get( d.name().toLowerCase() ).equals( "1" ) )
                 .collect( Collectors.toSet() );
-		return Optional.of(
-				new TripCalendar(
-						calendarId, startDate, endDate, weekdays ) );
-	}
 
-	/*
-	 * Get the calendar data for a given trip ID
-	 * @param tripID Trip ID as a String
-	 * @return Optional containing the map containing true on the days where
-	 *         the service is working, or empty Optional if the given trip ID
-	 *         maps to multiple or none entries on the calendar table
-	 */
+        TripCalendarBuilder builder = TripCalendar.builder( )
+                .withCalendarId( cal.get( "service_id" ) )
+                .withStartDate( cal.get( "start_date" ) )
+                .withEndDate( cal.get( "end_date" ) )
+                .withOperatingWeekdays( weekdays );
+
+        getMapFromData( this.calendar_dates, "service_id", serviceID )
+                .forEach( map -> {
+                    String date = map.get( "date" );
+                    if( map.get( "exception_type" ).equals( "1" ) ) {
+                        builder.withServiceAddedExceptionDate( date );
+                    } else {
+                        builder.withServiceRemovedExceptionDate( date );
+                    }
+                } );
+        return Optional.of( builder.build() );
+    }
+
+    /*
+     * Get the calendar data for a given trip ID
+     * @param tripID Trip ID as a String
+     * @return Optional containing the map containing true on the days where
+     *         the service is working, or empty Optional if the given trip ID
+     *         maps to multiple or none entries on the calendar table
+     */
 	public Optional<Map<String, String>> getCaledarFromTripID( String tripID ) {
 		// Retrieve the trip entry for the given Service ID
 		Set<Map<String, String>> entry = getMapFromData(this.trips, "trip_id", tripID);

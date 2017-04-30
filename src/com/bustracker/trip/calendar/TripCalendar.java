@@ -1,11 +1,10 @@
-package com.bustracker.trip;
+package com.bustracker.trip.calendar;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 /**
@@ -17,16 +16,19 @@ public class TripCalendar {
     private final LocalDateTime startDate;
     private final LocalDateTime endDate;
     private final Set<DayOfWeek> operatingWeekdays;
+    private final TripCalendarException exception;
 
-    public TripCalendar(
+    TripCalendar(
             String calendarId,
             LocalDate startDate,
             LocalDate endDate,
-            Set<DayOfWeek> operatingWeekdays ) {
+            Set<DayOfWeek> operatingWeekdays,
+            TripCalendarException exception ) {
         this.calendarId = calendarId;
         this.startDate = LocalDateTime.of( startDate, LocalTime.MIN );
         this.endDate = LocalDateTime.of( endDate, LocalTime.MAX );
         this.operatingWeekdays = operatingWeekdays;
+        this.exception = exception;
         assertOperatingWeekdays();
     }
 
@@ -37,32 +39,23 @@ public class TripCalendar {
         }
     }
 
-    public TripCalendar(
-            String calendarId,
-            String startDate,
-            String endDate,
-            Set<DayOfWeek> operatingWeekdays ) {
-        this(
-                calendarId,
-                parseDate( startDate ),
-                parseDate( endDate ),
-                operatingWeekdays );
-
-    }
-
-    private static LocalDate parseDate( String date ) {
-        DateTimeFormatter formatter =
-                DateTimeFormatter.ofPattern( "yyyyMMdd" );
-        return LocalDate.parse( date, formatter );
-    }
-
     public boolean isActiveOn( LocalDateTime dateTime ) {
+        LocalDate date = dateTime.toLocalDate( );
+        if( exception.isServiceAdded( date ) ) {
+            return true;
+        }
+        if( exception.isServiceRemoved( date ) ) {
+            return false;
+        }
         return startDate.isBefore( dateTime ) &&
                 endDate.isAfter( dateTime ) &&
                 operatingWeekdays.contains( dateTime.getDayOfWeek() );
     }
 
     public boolean isTerminatedOn( LocalDateTime dateTime ) {
+        if( exception.isServiceAddedOnOrAfter( dateTime.toLocalDate() ) ) {
+            return false;
+        }
         return endDate.isBefore( dateTime );
     }
 
@@ -82,9 +75,15 @@ public class TripCalendar {
     @Override
     public String toString() {
         return String.format(
-                "Calendar=[startDate=%s, endDate=%s, DaysOfWeek=%s]",
+                "Calendar=[startDate=%s, endDate=%s, " +
+                        "DaysOfWeek=%s, Exception=%s]",
                 startDate.toLocalDate(),
                 endDate .toLocalDate(),
-                operatingWeekdays );
+                operatingWeekdays,
+                exception );
+    }
+
+    public static TripCalendarBuilder builder() {
+        return new TripCalendarBuilder();
     }
 }
