@@ -2,9 +2,7 @@ package com.bustracker.trip;
 
 import com.bustracker.trip.thread.TripStopThreads;
 
-import java.time.DayOfWeek;
-import java.time.Duration;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.Set;
 
@@ -31,9 +29,17 @@ public class TripStop implements Comparable<TripStop> {
 		this.scheduledArrival = scheduledArrival;
 		this.operatingWeekdays = operatingWeekdays;
 		this.delay = delay;
+		assertOperatingWeekdays();
 	}
-	
-	public TripStop(
+
+    private void assertOperatingWeekdays() {
+        if( operatingWeekdays.size() == 0 ) {
+            throw new IllegalStateException(
+                    "No operating weekdays on TripId=" + tripId );
+        }
+    }
+
+    public TripStop(
 			String tripId,
 			String busLine,
 			String busStopId,
@@ -75,8 +81,19 @@ public class TripStop implements Comparable<TripStop> {
 		return scheduledArrival;
 	}
 	
-	public LocalTime getRealArrivalTime() {
+	private LocalTime getRealArrivalTime() {
 		return scheduledArrival.plus( delay );
+	}
+
+	public LocalDateTime getRealArrivalDateTime() {
+	    assertOperatingWeekdays();
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime arrivalDateTime = LocalDateTime.of( LocalDate.now(), getRealArrivalTime() );
+        while( now.compareTo( arrivalDateTime ) > 0 ||
+				!operatingWeekdays.contains( arrivalDateTime.getDayOfWeek() ) ) {
+            arrivalDateTime = arrivalDateTime.plus( Duration.ofDays( 1 ) );
+		}
+		return arrivalDateTime;
 	}
 
 	public Set<DayOfWeek> getOperatingWeekdays() {
@@ -86,7 +103,7 @@ public class TripStop implements Comparable<TripStop> {
 	public void setDelay( Duration delay ) {
 		this.delay = delay;
 		this.isRealTime = true;
-		// KEEP FUTURE AS ATTRIBUTE
+		// TODO: KEEP FUTURE AS ATTRIBUTE
 		TripStopThreads.schedule( this::clearDelay );
 	}
 
@@ -117,8 +134,8 @@ public class TripStop implements Comparable<TripStop> {
 
 	@Override
 	public int compareTo( TripStop o ) {
-		return getRealArrivalTime().compareTo(
-				o.getRealArrivalTime() );
+		return getRealArrivalDateTime().compareTo(
+				o.getRealArrivalDateTime() );
 	}
 
 	@Override
@@ -130,7 +147,7 @@ public class TripStop implements Comparable<TripStop> {
 				"delay=%d, realTime=%b]",
 				tripId, busLine, busStopId,
 				scheduledArrival,
-                getRealArrivalTime(),
+				getRealArrivalDateTime(),
 				operatingWeekdays,
 				delay.getSeconds(),
                 isRealTime );
