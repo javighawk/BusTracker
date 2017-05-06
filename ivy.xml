@@ -32,5 +32,6 @@
 	<dependency org="io.reactivex" name="rxjava" rev="1.2.7"/>
 	<dependency org="org.slf4j" name="slf4j-api" rev="1.7.25"/>
 	<dependency org="org.slf4j" name="slf4j-simple" rev="1.7.25"/>
+	<dependency org="junit" name="junit" rev="4.12"/>
 	</dependencies>
 </ivy-module>
