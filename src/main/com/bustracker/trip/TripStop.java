@@ -2,10 +2,12 @@ package com.bustracker.trip;
 
 import com.bustracker.trip.calendar.TripCalendar;
 import com.bustracker.trip.thread.TripStopThreads;
+import com.google.common.util.concurrent.Futures;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.concurrent.Future;
 
 public class TripStop implements Comparable<TripStop> {
 
@@ -16,6 +18,8 @@ public class TripStop implements Comparable<TripStop> {
 	private final TripCalendar calendar;
 	private Duration delay;
 	private boolean isRealTime = false;
+	private Future<?> timeoutFuture =
+			Futures.immediateFuture( null );
 
     public TripStop(
 			String tripId,
@@ -59,8 +63,10 @@ public class TripStop implements Comparable<TripStop> {
 	public void setDelay( Duration delay ) {
 		this.delay = delay;
 		this.isRealTime = true;
-		// TODO: KEEP FUTURE AS ATTRIBUTE
-		TripStopThreads.schedule( this::clearDelay );
+		if( !timeoutFuture.isDone() ) {
+			timeoutFuture.cancel( true );
+		}
+		timeoutFuture = TripStopThreads.schedule( this::clearDelay );
 	}
 
 	private void clearDelay() {
