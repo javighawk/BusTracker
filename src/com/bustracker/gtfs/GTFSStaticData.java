@@ -1,7 +1,7 @@
 package com.bustracker.gtfs;
 
-import com.bustracker.trip.calendar.TripCalendar;
 import com.bustracker.trip.TripStop;
+import com.bustracker.trip.calendar.TripCalendar;
 import com.bustracker.trip.calendar.TripCalendarBuilder;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -12,7 +12,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.DayOfWeek;
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -231,7 +236,7 @@ public class GTFSStaticData {
                     map.get( "trip_id" ),
                     map.get( "stop_id" ),
                     map.get( "arrival_time" ),
-                    tripStops );
+					tripStops );
 		}
 		return tripStops;
 	}
@@ -240,7 +245,7 @@ public class GTFSStaticData {
             String tripId,
             String stopId,
             String arrivalTime,
-            Set<TripStop> set ) {
+			Set<TripStop> set ) {
         Optional<TripCalendar> tripCalendar =
                 getTripCalendarFromTripID( tripId );
         getBusNumberFromTrip( tripId ).ifPresent(
@@ -254,7 +259,6 @@ public class GTFSStaticData {
                                 .withDelay( Duration.ZERO )
                                 .build( ) ) ) );
     }
-
 
     /*
      * Get trip direction given a trip ID
@@ -359,8 +363,8 @@ public class GTFSStaticData {
             return Optional.empty();
         }
 
-        return getTripCalendarFromServiceID(
-                entry.iterator().next().get( "service_id" ) );
+		return getTripCalendarFromServiceID(
+				entry.iterator( ).next( ).get( "service_id" ) );
     }
 
 	private Optional<TripCalendar> getTripCalendarFromServiceID(

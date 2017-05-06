@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by Javier on 2017-04-30.
@@ -85,5 +86,20 @@ public class TripCalendar {
 
     public static TripCalendarBuilder builder() {
         return new TripCalendarBuilder();
+    }
+
+    public TripCalendar getCopyWithDayShift() {
+        LocalDate startDayShifted = startDate.plusDays( 1 ).toLocalDate();
+        LocalDate endDayShifted = endDate.plusDays( 1 ).toLocalDate();
+        Set<DayOfWeek> weekdaysShifted = operatingWeekdays
+                .stream()
+                .map( d -> d.plus( 1 ) )
+                .collect( Collectors.toSet() );
+        return new TripCalendar(
+                calendarId,
+                startDayShifted,
+                endDayShifted,
+                weekdaysShifted,
+                exception.getCopyWithDayShift() );
     }
 }

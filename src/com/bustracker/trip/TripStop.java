@@ -6,59 +6,32 @@ import com.bustracker.trip.thread.TripStopThreads;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
 
 public class TripStop implements Comparable<TripStop> {
 
 	private final String tripId;
 	private final String busLine;
 	private final String busStopId;
-	private final LocalTime scheduledArrival;
+	private final LocalTime scheduledArrivalTime;
 	private final TripCalendar calendar;
 	private Duration delay;
 	private boolean isRealTime = false;
-
-	public TripStop(
-			String tripId,
-			String busLine,
-			String busStopId,
-			LocalTime scheduledArrival,
-			TripCalendar calendar,
-			Duration delay ) {
-		this.tripId = tripId;
-		this.busLine = busLine;
-		this.busStopId = busStopId;
-		this.scheduledArrival = scheduledArrival;
-		this.calendar = calendar;
-		this.delay = delay;
-	}
 
     public TripStop(
 			String tripId,
 			String busLine,
 			String busStopId,
-			String scheduledArrivalTime,
+			LocalTime scheduledArrivalTime,
 			TripCalendar calendar,
 			Duration delay ) {
-		this( 
-				tripId, 
-				busLine,
-				busStopId,
-				parseLocalTimeFromString( scheduledArrivalTime ),
-				calendar,
-				delay );
-	}
+        this.tripId = tripId;
+        this.busLine = busLine;
+        this.busStopId = busStopId;
+        this.calendar = calendar;
+        this.delay = delay;
+        this.scheduledArrivalTime = scheduledArrivalTime;
+    }
 
-	private static LocalTime parseLocalTimeFromString( String time ) {
-		try {
-			return LocalTime.parse( time );
-		} catch( DateTimeParseException e ) {
-			int hour = Integer.parseInt( time.substring( 0,2 ) ) - 24;
-			return LocalTime.parse(
-					String.format( "%02d", hour ) + time.substring( 2 ) );
-		}
-	}
-	
 	public String getTripId() {
 		return tripId;
 	}
@@ -72,11 +45,11 @@ public class TripStop implements Comparable<TripStop> {
 	}
 
 	public LocalTime getScheduledArrivalTime() {
-		return scheduledArrival;
+		return scheduledArrivalTime;
 	}
 	
 	private LocalTime getRealArrivalTime() {
-		return scheduledArrival.plus( delay );
+		return scheduledArrivalTime.plus( delay );
 	}
 
 	public LocalDateTime getRealArrivalDateTime() {
@@ -129,7 +102,7 @@ public class TripStop implements Comparable<TripStop> {
 				"calendar=%s, " +
 				"delay=%d, realTime=%b]",
 				tripId, busLine, busStopId,
-				scheduledArrival,
+                scheduledArrivalTime,
 				getRealArrivalDateTime(),
 				calendar,
 				delay.getSeconds(),

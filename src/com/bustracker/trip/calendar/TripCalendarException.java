@@ -4,14 +4,27 @@ import com.google.common.collect.Sets;
 
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by Javier on 2017-04-30.
  */
 class TripCalendarException {
 
-    private Set<LocalDate> addedServiceDates = Sets.newHashSet();
-    private Set<LocalDate> removedServiceDates = Sets.newHashSet();
+    private final Set<LocalDate> addedServiceDates;
+    private final Set<LocalDate> removedServiceDates;
+
+    public TripCalendarException() {
+        addedServiceDates = Sets.newHashSet();
+        removedServiceDates = Sets.newHashSet();
+    }
+
+    private TripCalendarException(
+            Set<LocalDate> addedServiceDates,
+            Set<LocalDate> removedServiceDates ) {
+        this.addedServiceDates = addedServiceDates;
+        this.removedServiceDates = removedServiceDates;
+    }
 
     public void addServiceAddedDate( LocalDate date ) {
         addedServiceDates.add( date );
@@ -44,5 +57,18 @@ class TripCalendarException {
                 "CalendarException=[addedServiceOn=%s, removedServiceOn=%s]",
                 addedServiceDates,
                 removedServiceDates );
+    }
+
+    TripCalendarException getCopyWithDayShift() {
+        Set<LocalDate> addedServiceDatesShifted = addedServiceDates
+                .stream( )
+                .map( d -> d.plusDays( 1 ) )
+                .collect( Collectors.toSet( ) );
+        Set<LocalDate> removedServiceDatesShifted = removedServiceDates
+                .stream( )
+                .map( d -> d.plusDays( 1 ) )
+                .collect( Collectors.toSet( ) );
+        return new TripCalendarException(
+                addedServiceDatesShifted, removedServiceDatesShifted );
     }
 }

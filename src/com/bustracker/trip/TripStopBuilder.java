@@ -3,6 +3,8 @@ package com.bustracker.trip;
 import com.bustracker.trip.calendar.TripCalendar;
 
 import java.time.Duration;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 
 public class TripStopBuilder {
 
@@ -11,7 +13,8 @@ public class TripStopBuilder {
     private String busStopId;
     private Duration delay = Duration.ZERO;
     private TripCalendar calendar;
-    private String scheduledArrivalString;
+    private LocalTime scheduledArrival;
+    private boolean isArrivalAfterMidnight;
 
     TripStopBuilder() {
     }
@@ -43,16 +46,30 @@ public class TripStopBuilder {
     }
 
     public TripStopBuilder withScheduledArrival(String scheduledArrival) {
-        this.scheduledArrivalString = scheduledArrival;
+        this.scheduledArrival = parseTime( scheduledArrival );
         return this;
     }
 
+    private LocalTime parseTime( String time ) {
+        try {
+            return LocalTime.parse( time );
+        } catch( DateTimeParseException e ) {
+            isArrivalAfterMidnight = true;
+            int hour = Integer.parseInt( time.substring( 0,2 ) ) - 24;
+            return LocalTime.parse(
+                    String.format( "%02d", hour ) + time.substring( 2 ) );
+        }
+    }
+
     public TripStop build() {
+        if( isArrivalAfterMidnight ) {
+            calendar = calendar.getCopyWithDayShift();
+        }
         return new TripStop(
                 tripId,
                 busLine,
                 busStopId,
-                scheduledArrivalString,
+                scheduledArrival,
                 calendar,
                 delay);
     }
