@@ -2,7 +2,7 @@ package com.bustracker.userio.display;
 
 import com.bustracker.bus.BusStopManager;
 import com.bustracker.trip.TripStop;
-import com.pi4j.io.i2c.I2CFactory;
+import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -24,7 +24,7 @@ public class DisplayManager {
             Duration taskPeriod,
             int numberOfTripsToShow,
             ScheduledExecutorService executorService )
-            throws IOException, I2CFactory.UnsupportedBusNumberException {
+            throws IOException, UnsupportedBusNumberException {
         this.busStopManager = busStopManager;
         this.busDisplay = new BusDisplay();
         this.numberOfTripsToShow = numberOfTripsToShow;
