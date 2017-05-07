@@ -80,6 +80,15 @@ class BusDisplay extends AdafruitLEDBackPack {
 		write();
 	}
 
+	void drawBusIndexIndicator( int busIndex ) {
+		reg[2] = (byte) ((reg[2] & 0xF3) | busIndex << 2);
+	}
+
+	void clearRealTimeIndicator() {
+		clearColon();
+		write();
+	}
+
 	void drawError() {
         reg[0] = 0b01111001;     // E
         reg[1] = 0b01010000;     // r
