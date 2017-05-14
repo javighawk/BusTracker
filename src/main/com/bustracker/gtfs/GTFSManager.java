@@ -30,7 +30,18 @@ public class GTFSManager {
 			new HashMap<>();
 	private final Logger LOG = LoggerFactory.getLogger( GTFSManager.class );
 
-	public GTFSManager( 
+	public static GTFSManager createAndStart(
+			String sourceURL,
+			Duration taskPeriod,
+			GTFSStaticData staticData,
+			ScheduledExecutorService executorService ) {
+		GTFSManager result = new GTFSManager(
+				sourceURL, taskPeriod, staticData, executorService );
+		result.start( taskPeriod, executorService );
+		return result;
+	}
+
+	private GTFSManager(
 			String sourceURL, 
 			Duration taskPeriod, 
 			GTFSStaticData staticData,
@@ -41,13 +52,17 @@ public class GTFSManager {
 			throw new IllegalArgumentException( "Bad URL", e );
 		}
 		this.staticData = staticData;
-		executorService.scheduleAtFixedRate( 
+	}
+
+	private void start(
+			Duration taskPeriod, ScheduledExecutorService executorService ) {
+		executorService.scheduleAtFixedRate(
 				this::task,
-				0, 
-				taskPeriod.getSeconds(), 
+				0,
+				taskPeriod.getSeconds(),
 				TimeUnit.SECONDS );
 	}
-	
+
 	private void task() {
 		LOG.info( "Start GTFS retrieval task" );
 		LOG.info( "Bus stops being tracked: {}", busStopSubscriptions.keySet() );
