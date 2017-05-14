@@ -19,13 +19,29 @@ public class DisplayManager {
     private final int numberOfTripsToShow;
     private int currentlyShownTripIndex = 0;
 
-    public DisplayManager(
+    public static DisplayManager createAndInit(
+            int numberOfTripsToShow,
+            Duration updateDisplayTaskPeriod,
+            ScheduledExecutorService executorService )
+            throws IOException, UnsupportedBusNumberException {
+        DisplayManager result = new DisplayManager(
+                numberOfTripsToShow, updateDisplayTaskPeriod,executorService );
+        result.start( updateDisplayTaskPeriod, executorService );
+        return result;
+    }
+
+    private DisplayManager(
             int numberOfTripsToShow,
             Duration updateDisplayTaskPeriod,
             ScheduledExecutorService executorService )
             throws IOException, UnsupportedBusNumberException {
         this.numberOfTripsToShow = numberOfTripsToShow;
         this.busDisplay = new BusDisplay();
+    }
+
+    private void start(
+            Duration updateDisplayTaskPeriod,
+            ScheduledExecutorService executorService ) {
         executorService.scheduleAtFixedRate(
                 this::task,
                 0,

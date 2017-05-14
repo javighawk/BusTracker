@@ -22,13 +22,27 @@ public class UserIOManager {
     private static final Logger LOG =
             LoggerFactory.getLogger( UserIOManager.class );
 
-    public UserIOManager(
+    public static UserIOManager createAndInit(
+            BusStopManager busStopManager,
+            int numberOfTripsToShow,
+            Duration updateDisplayTaskPeriod,
+            ScheduledExecutorService executorService ) {
+        UserIOManager result = new UserIOManager(
+                busStopManager,
+                numberOfTripsToShow,
+                updateDisplayTaskPeriod,
+                executorService );
+        result.init();
+        return result;
+    }
+
+    private UserIOManager(
             BusStopManager busStopManager,
             int numberOfTripsToShow,
             Duration updateDisplayTaskPeriod,
             ScheduledExecutorService executorService ) {
         try {
-            this.displayManager = new DisplayManager(
+            this.displayManager = DisplayManager.createAndInit(
                     numberOfTripsToShow,
                     updateDisplayTaskPeriod,
                     executorService );
@@ -37,7 +51,22 @@ public class UserIOManager {
             throw new IllegalStateException( e );
         }
         this.busStopManager = busStopManager;
-        this.gpioManager = new GPIOManager();
+        this.gpioManager = GPIOManager.createAndInit();
+    }
+
+    private void init() {
+        gpioManager.getEvents().subscribe( this::onGpioEvent );
+    }
+
+    private void onGpioEvent( GPIOManager.GPIOEvent event ) {
+        switch( event ) {
+            case SHOW_NEXT_BUS_STOP:
+                onDisplayNextBusStopEvent();
+                break;
+            case SHOW_NEXT_TRIP:
+                onDisplayNextTripEvent();
+                break;
+        }
     }
 
     private void onDisplayNextBusStopEvent() {
