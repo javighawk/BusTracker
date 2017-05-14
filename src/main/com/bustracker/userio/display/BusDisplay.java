@@ -47,25 +47,41 @@ class BusDisplay extends AdafruitLEDBackPack {
 		this.writeDisplay();
 	}
 
-    void drawBusNumber( int busNumber ) {
-        if( busNumber > 0 && busNumber < 10 ){
+	void drawOnDisplay(
+			int busNumber, Duration waitingTime, boolean realTime ) {
+		if( busNumber <= 0 && busNumber > 99 ) {
+			throw new IllegalArgumentException(
+					"BusNumber > 99: " + busNumber );
+		}
+
+		if( waitingTime.toMinutes() > 99 ) {
+			clear();
+			return;
+		}
+
+		drawBusNumber( busNumber );
+		drawWaitingTime( waitingTime );
+		if( realTime ) {
+			drawRealTimeIndicator( );
+		} else {
+			clearRealTimeIndicator();
+		}
+	}
+
+    private void drawBusNumber( int busNumber ) {
+        if( busNumber < 10 ){
             reg[0] = (byte) numDisplay[busNumber];
             reg[1] = 0;
-        }else if( busNumber >= 10 ){
+        } else {
             reg[0] = (byte) numDisplay[busNumber/10];
             reg[1] = (byte) numDisplay[busNumber % 10];
-        } else {
-            throw new IllegalArgumentException(
-                    "BusNumber > 99: " + busNumber );
         }
         write();
     }
 
-	void drawWaitingTime( Duration time ) {
-		int waitingTime = (int) time.toMinutes();
-		if( waitingTime < 0 || waitingTime >= 100 ){
-			this.clear();
-		} else if( waitingTime < 10 ){
+	private void drawWaitingTime( Duration time ) {
+		int waitingTime = (int) Math.max( time.toMinutes(), 0 );
+		if( waitingTime < 10 ){
 	        reg[3] = 0;
 	        reg[4] = (byte) numDisplay[waitingTime];
 	    } else {
@@ -75,7 +91,7 @@ class BusDisplay extends AdafruitLEDBackPack {
 	    write();
 	}
 
-	void drawRealTimeIndicator() {
+	private void drawRealTimeIndicator( ) {
 		drawColon();
 		write();
 	}
@@ -84,7 +100,7 @@ class BusDisplay extends AdafruitLEDBackPack {
 		reg[2] = (byte) ((reg[2] & 0xF3) | busIndex << 2);
 	}
 
-	void clearRealTimeIndicator() {
+	private void clearRealTimeIndicator( ) {
 		clearColon();
 		write();
 	}

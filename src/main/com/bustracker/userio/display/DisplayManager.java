@@ -1,6 +1,6 @@
 package com.bustracker.userio.display;
 
-import com.bustracker.bus.BusStopManager;
+import com.bustracker.bus.BusStop;
 import com.bustracker.trip.TripStop;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
@@ -14,24 +14,22 @@ import java.util.concurrent.TimeUnit;
 
 public class DisplayManager {
 
-    private final BusStopManager busStopManager;
     private final BusDisplay busDisplay;
+    private Optional<BusStop> currentBusStopDisplayed = Optional.empty();
     private final int numberOfTripsToShow;
     private int currentlyShownTripIndex = 0;
 
     public DisplayManager(
-            BusStopManager busStopManager,
-            Duration taskPeriod,
             int numberOfTripsToShow,
+            Duration updateDisplayTaskPeriod,
             ScheduledExecutorService executorService )
             throws IOException, UnsupportedBusNumberException {
-        this.busStopManager = busStopManager;
-        this.busDisplay = new BusDisplay();
         this.numberOfTripsToShow = numberOfTripsToShow;
+        this.busDisplay = new BusDisplay();
         executorService.scheduleAtFixedRate(
                 this::task,
                 0,
-                taskPeriod.getSeconds(),
+                updateDisplayTaskPeriod.getSeconds(),
                 TimeUnit.SECONDS );
     }
 
@@ -40,41 +38,48 @@ public class DisplayManager {
     }
 
     private synchronized void updateDisplay() {
-        Optional<Optional<TripStop>> tripStopOpt =
-                busStopManager.getBusStop( "busStopId" )
-                        .map( bs -> bs.getUpcomingBus(
-                                currentlyShownTripIndex ) );
-        if( tripStopOpt.isPresent() ) {
-            if( tripStopOpt.get().isPresent() ) {
-                drawTripStopOnDisplay( tripStopOpt.get().get() );
-            } else {
-                busDisplay.clear();
-            }
+        if( currentBusStopDisplayed.isPresent() ) {
+            drawTripStopOnDisplay( currentBusStopDisplayed.get() );
         } else {
-            busDisplay.drawError();
+            busDisplay.clear();
         }
         busDisplay.drawBusIndexIndicator( currentlyShownTripIndex );
     }
 
-    private void drawTripStopOnDisplay( TripStop tripStop ) {
-        long waitTime = LocalDateTime.now().until(
-                tripStop.getRealArrivalDateTime(), ChronoUnit.MINUTES );
-        busDisplay.drawBusNumber( Integer.parseInt( tripStop.getBusLine() ) );
-        busDisplay.drawWaitingTime( Duration.ofMinutes( waitTime ) );
-        if( tripStop.isRealTime() ) {
-            busDisplay.drawRealTimeIndicator();
+    private void drawTripStopOnDisplay( BusStop busStopToDisplay ) {
+        Optional<TripStop> tripStopOpt = busStopToDisplay.getUpcomingBus(
+                currentlyShownTripIndex );
+        if( tripStopOpt.isPresent() ) {
+            TripStop tripStop = tripStopOpt.get( );
+            busDisplay.drawOnDisplay(
+                    tripStop.getBusLine(),
+                    getDurationUntil(
+                            tripStop.getRealArrivalDateTime() ),
+                    tripStop.isRealTime()
+                    );
         } else {
-            busDisplay.clearRealTimeIndicator();
+            busDisplay.clear();
         }
     }
 
-    public void showNextUpcomingBusIndex() {
-        currentlyShownTripIndex +=
+    private Duration getDurationUntil( LocalDateTime realArrivalDateTime ) {
+        return Duration.ofMinutes(
+                LocalDateTime.now().until(
+                        realArrivalDateTime, ChronoUnit.MINUTES ) );
+    }
+
+    public void updateDisplayWith( Optional<BusStop> busStopDisplayOpt ) {
+        this.currentBusStopDisplayed = busStopDisplayOpt;
+        updateDisplay();
+    }
+
+    public void displayNextTrip() {
+        currentlyShownTripIndex =
                 ( currentlyShownTripIndex + 1 ) % numberOfTripsToShow;
         updateDisplay();
     }
 
-    public void showNextBusStop() {
-
+    public Optional<BusStop> getCurrentBusStopDisplay() {
+        return currentBusStopDisplayed;
     }
 }
