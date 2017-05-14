@@ -35,17 +35,14 @@ public class GTFSManager {
 			Duration taskPeriod,
 			GTFSStaticData staticData,
 			ScheduledExecutorService executorService ) {
-		GTFSManager result = new GTFSManager(
-				sourceURL, taskPeriod, staticData, executorService );
+		GTFSManager result = new GTFSManager( sourceURL, staticData );
 		result.start( taskPeriod, executorService );
 		return result;
 	}
 
 	private GTFSManager(
 			String sourceURL, 
-			Duration taskPeriod, 
-			GTFSStaticData staticData,
-			ScheduledExecutorService executorService ) {
+			GTFSStaticData staticData ) {
 		try {
 			this.url = new URL( sourceURL );
 		} catch( MalformedURLException e ) {
@@ -117,7 +114,7 @@ public class GTFSManager {
 		String tripId = tripUpdate.getTrip().getTripId();
 		return tripUpdate.getStopTimeUpdateList().stream().filter(
 				stu1 -> busStopSubscriptions.containsKey(
-						stu1.getStopId() ) )
+						Integer.parseInt( stu1.getStopId() ) ) )
 				.map( stu -> new TripStopUpdate(
 						tripId,
 						stu.getStopId(),
