@@ -45,6 +45,11 @@ public class Main {
                 executorService );
 
         LOG.info( "Finished init" );
+        addBusStops();
+    }
+
+    private static void addBusStops( ) {
+        busStopManager.addBusStopToTrack( "Bryans / 108th Street");
     }
 
     private static ScheduledThreadPoolExecutor getNewThreadPool( ) {
