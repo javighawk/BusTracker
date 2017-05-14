@@ -7,24 +7,34 @@ import java.time.Duration;
  */
 public class TripStopUpdate {
 
-    private final String tripId;
-    private final String busStopId;
+    private final int tripId;
+    private final int busStopId;
     private final Duration delay;
 
     public TripStopUpdate(
-            String tripId,
-            String busStopId,
+            int tripId,
+            int busStopId,
             Duration delay ) {
         this.tripId = tripId;
         this.busStopId = busStopId;
         this.delay = delay;
     }
 
-    public String getTripId() {
+    public TripStopUpdate(
+            String tripId,
+            String busStopId,
+            Duration delay ) {
+        this(
+                Integer.parseInt( tripId ),
+                Integer.parseInt( busStopId ),
+                delay );
+    }
+
+    public int getTripId() {
         return tripId;
     }
 
-    public String getBusStopId() {
+    public int getBusStopId() {
         return busStopId;
     }
 
@@ -35,13 +45,13 @@ public class TripStopUpdate {
     @Override
     public String toString() {
         return String.format( "TripStopUpdate=" +
-                        "[tripId=%s, busStopId=%s, " +
+                        "[tripId=%d, busStopId=%d, " +
                         "delay=%d]",
                 tripId, busStopId, delay.getSeconds() );
     }
 
     public boolean equalToTripStop( TripStop obj ) {
-        return tripId.equals( obj.getTripId() ) &&
-                busStopId.equals( obj.getBusStopId() );
+        return tripId == obj.getTripId() &&
+                busStopId == obj.getBusStopId();
     }
 }

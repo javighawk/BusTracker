@@ -3,7 +3,6 @@ package com.bustracker.bus;
 import com.bustracker.trip.TripStop;
 import com.bustracker.trip.TripStopUpdate;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.subjects.PublishSubject;
@@ -16,15 +15,14 @@ import java.util.Set;
 
 public class BusStop {
 
-	private final String busStopId;
+	private final int busStopId;
 	private final Set<TripStop> allTripStops;
 	private final PublishSubject<BusStop> tripsUpdateSubject = 
 			PublishSubject.create();
-	private final Set<TripStop> lastUpdatedTripStops = Sets.newHashSet();
     private final Logger LOG = LoggerFactory.getLogger( BusStop.class );
 	
 	public BusStop( 
-			String busStopId, Set<TripStop> tripStops ) {
+			int busStopId, Set<TripStop> tripStops ) {
 		this.busStopId = busStopId;
 		this.allTripStops = tripStops;
 	}
@@ -59,7 +57,7 @@ public class BusStop {
         return Optional.empty();
 	}
 
-	public String getBusStopId() {
+	public int getBusStopId() {
 		return busStopId;
 	}
 

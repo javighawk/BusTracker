@@ -26,7 +26,7 @@ public class GTFSManager {
 	
 	private final URL url;
 	private final GTFSStaticData staticData;
-	private Map<String, PublishSubject<Set<TripStopUpdate>>> busStopSubscriptions =
+	private Map<Integer, PublishSubject<Set<TripStopUpdate>>> busStopSubscriptions =
 			new HashMap<>();
 	private final Logger LOG = LoggerFactory.getLogger( GTFSManager.class );
 
@@ -74,12 +74,12 @@ public class GTFSManager {
 	}
 
 	private void notifySubscriber(
-			String busStopId,
+			int busStopId,
 			PublishSubject<Set<TripStopUpdate>> subscription,
 			Set<TripStopUpdate> tripStopUpdates ) {
 		Set<TripStopUpdate> updates = tripStopUpdates
 				.stream( )
-				.filter( tsu -> tsu.getBusStopId( ).equals( busStopId ) )
+				.filter( tsu -> tsu.getBusStopId() == busStopId )
 				.collect( Collectors.toSet( ) );
 		subscription.onNext( updates );
 	}
@@ -111,7 +111,7 @@ public class GTFSManager {
 	}
 
 	public Subscription subscribeToBusStopUpdates(
-			String busStopId,
+			int busStopId,
 			Action1<? super Set<TripStopUpdate>> action ) {
 	    LOG.info( "Subscribing bus stop ID {}", busStopId );
 		PublishSubject<Set<TripStopUpdate>> subject = PublishSubject.create();

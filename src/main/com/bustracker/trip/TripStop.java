@@ -11,9 +11,9 @@ import java.util.concurrent.Future;
 
 public class TripStop implements Comparable<TripStop> {
 
-	private final String tripId;
-	private final String busLine;
-	private final String busStopId;
+	private final int tripId;
+	private final int busLine;
+	private final int busStopId;
 	private final LocalTime scheduledArrivalTime;
 	private final TripCalendar calendar;
 	private Duration delay;
@@ -22,9 +22,9 @@ public class TripStop implements Comparable<TripStop> {
 			Futures.immediateFuture( null );
 
     public TripStop(
-			String tripId,
-			String busLine,
-			String busStopId,
+			int tripId,
+			int busLine,
+			int busStopId,
 			LocalTime scheduledArrivalTime,
 			TripCalendar calendar,
 			Duration delay ) {
@@ -36,15 +36,31 @@ public class TripStop implements Comparable<TripStop> {
         this.scheduledArrivalTime = scheduledArrivalTime;
     }
 
-	public String getTripId() {
+	public TripStop(
+			String tripId,
+			String busLine,
+			String busStopId,
+			LocalTime scheduledArrivalTime,
+			TripCalendar calendar,
+			Duration delay ) {
+		this(
+				Integer.parseInt( tripId ),
+				Integer.parseInt( busLine ),
+				Integer.parseInt( busStopId ),
+				scheduledArrivalTime,
+				calendar,
+				delay );
+	}
+
+	public int getTripId() {
 		return tripId;
 	}
 
-	public String getBusLine() {
+	public int getBusLine() {
 		return busLine;
 	}
 	
-	public String getBusStopId() {
+	public int getBusStopId() {
 		return busStopId;
 	}
 
@@ -90,8 +106,8 @@ public class TripStop implements Comparable<TripStop> {
 		TripStop other = (TripStop) obj;
 
 		return
-				tripId.equals( other.getTripId() ) &&
-				busStopId.equals( other.getBusStopId() );
+				tripId == other.getTripId() &&
+				busStopId == other.getBusStopId();
 	}
 
 	@Override
@@ -102,7 +118,7 @@ public class TripStop implements Comparable<TripStop> {
 
 	@Override
 	public String toString() {
-        return String.format( "TripStop=[tripId=%s, busLine=%s, busStopId=%s, " +
+        return String.format( "TripStop=[tripId=%d, busLine=%d, busStopId=%d, " +
 				"schedArrivalTime=%s, " +
 				"realArrivalTime=%s, " +
 				"calendar=%s, " +
