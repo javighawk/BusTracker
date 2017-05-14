@@ -52,6 +52,11 @@ Temporary Items
 .classpath
 .project
 
+# User folders
+*.iml
+.idea
+out
+
 # GTFS data
 gtfs/*
 
