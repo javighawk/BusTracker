@@ -3,6 +3,8 @@ package com.bustracker.userio.display;
 import com.bustracker.bus.BusStop;
 import com.bustracker.trip.TripStop;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -18,22 +20,21 @@ public class DisplayManager {
     private Optional<BusStop> currentBusStopDisplayed = Optional.empty();
     private final int numberOfTripsToShow;
     private int currentlyShownTripIndex = 0;
+    private static final Logger LOG =
+            LoggerFactory.getLogger( DisplayManager.class );
 
     public static DisplayManager createAndInit(
             int numberOfTripsToShow,
             Duration updateDisplayTaskPeriod,
             ScheduledExecutorService executorService )
             throws IOException, UnsupportedBusNumberException {
-        DisplayManager result = new DisplayManager(
-                numberOfTripsToShow, updateDisplayTaskPeriod,executorService );
+        DisplayManager result = new DisplayManager( numberOfTripsToShow );
         result.start( updateDisplayTaskPeriod, executorService );
         return result;
     }
 
     private DisplayManager(
-            int numberOfTripsToShow,
-            Duration updateDisplayTaskPeriod,
-            ScheduledExecutorService executorService )
+            int numberOfTripsToShow )
             throws IOException, UnsupportedBusNumberException {
         this.numberOfTripsToShow = numberOfTripsToShow;
         this.busDisplay = new BusDisplay();
@@ -54,9 +55,12 @@ public class DisplayManager {
     }
 
     private synchronized void updateDisplay() {
+        LOG.info( "Update display" );
         if( currentBusStopDisplayed.isPresent() ) {
+            LOG.info( "Bus stop is present for displaying" );
             drawTripStopOnDisplay( currentBusStopDisplayed.get() );
         } else {
+            LOG.warn( "No bus stop to display" );
             busDisplay.clear();
         }
         busDisplay.drawBusIndexIndicator( currentlyShownTripIndex );
@@ -66,6 +70,7 @@ public class DisplayManager {
         Optional<TripStop> tripStopOpt = busStopToDisplay.getUpcomingBus(
                 currentlyShownTripIndex );
         if( tripStopOpt.isPresent() ) {
+            LOG.info( "Displaying trip..." );
             TripStop tripStop = tripStopOpt.get( );
             busDisplay.drawOnDisplay(
                     tripStop.getBusLine(),
@@ -74,6 +79,7 @@ public class DisplayManager {
                     tripStop.isRealTime()
                     );
         } else {
+            LOG.info( "No trip to display" );
             busDisplay.clear();
         }
     }
@@ -90,12 +96,14 @@ public class DisplayManager {
     }
 
     public void displayNextTrip() {
+        LOG.info( "Display next trip" );
         currentlyShownTripIndex =
                 ( currentlyShownTripIndex + 1 ) % numberOfTripsToShow;
         updateDisplay();
     }
 
     public Optional<BusStop> getCurrentBusStopDisplay() {
+        LOG.info( "Display next bus stop" );
         return currentBusStopDisplayed;
     }
 }

@@ -6,6 +6,8 @@ import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
@@ -23,6 +25,8 @@ public class GPIOManager {
 	private GpioPinDigitalInput nextBusStopGpioPin;
 
 	private final PublishSubject buttonPressedSubject = PublishSubject.create();
+	private static final Logger LOG =
+			LoggerFactory.getLogger( GPIOManager.class );
 
 	public static GPIOManager createAndInit() {
 	    GPIOManager result = new GPIOManager();
@@ -46,6 +50,7 @@ public class GPIOManager {
 	}
 
 	private void fireButtonPressedEvent( GPIOEvent event ) {
+		LOG.info( "New GPIO event received" );
 		buttonPressedSubject.onNext( event );
 	}
 

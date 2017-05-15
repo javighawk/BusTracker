@@ -3,6 +3,8 @@ package com.bustracker.userio.display;
 
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 import net.slintes.raspiMatrix.AdafruitLEDBackPack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -22,6 +24,8 @@ class BusDisplay extends AdafruitLEDBackPack {
             0x7F, 		// 8
             0x6F };		// 9
 	private byte[] reg = new byte[5];
+	private static final Logger LOG =
+			LoggerFactory.getLogger( BusDisplay.class );
 
 	BusDisplay() throws IOException, UnsupportedBusNumberException {
 		super(1, i2c_addr);
@@ -55,6 +59,7 @@ class BusDisplay extends AdafruitLEDBackPack {
 		}
 
 		if( waitingTime.toMinutes() > 99 ) {
+			LOG.info( "Waiting time for this trip is more than 99 minutes" );
 			clear();
 			return;
 		}
@@ -69,6 +74,7 @@ class BusDisplay extends AdafruitLEDBackPack {
 	}
 
     private void drawBusNumber( int busNumber ) {
+		LOG.info( "Display bus number" );
         if( busNumber < 10 ){
             reg[0] = (byte) numDisplay[busNumber];
             reg[1] = 0;
@@ -80,6 +86,7 @@ class BusDisplay extends AdafruitLEDBackPack {
     }
 
 	private void drawWaitingTime( Duration time ) {
+		LOG.info( "Display waiting time" );
 		int waitingTime = (int) Math.max( time.toMinutes(), 0 );
 		if( waitingTime < 10 ){
 	        reg[3] = 0;
@@ -92,20 +99,24 @@ class BusDisplay extends AdafruitLEDBackPack {
 	}
 
 	private void drawRealTimeIndicator( ) {
+		LOG.info( "Display real time" );
 		drawColon();
 		write();
 	}
 
 	void drawBusIndexIndicator( int busIndex ) {
+		LOG.info( "Display trip index" );
 		reg[2] = (byte) ((reg[2] & 0xF3) | busIndex << 2);
 	}
 
 	private void clearRealTimeIndicator( ) {
+		LOG.info( "Clear real time" );
 		clearColon();
 		write();
 	}
 
 	void drawError() {
+		LOG.error( "Display error" );
         reg[0] = 0b01111001;     // E
         reg[1] = 0b01010000;     // r
         reg[3] = 0b01010000;     // r

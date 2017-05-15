@@ -59,6 +59,7 @@ public class UserIOManager {
     }
 
     private void onGpioEvent( GPIOManager.GPIOEvent event ) {
+        LOG.info( "New GPIO event received" );
         switch( event ) {
             case SHOW_NEXT_BUS_STOP:
                 onDisplayNextBusStopEvent();
@@ -70,6 +71,7 @@ public class UserIOManager {
     }
 
     private void onDisplayNextBusStopEvent() {
+        LOG.info( "Change bus stop to display" );
         displayManager.updateDisplayWith(
                 busStopManager.getNextBusStop(
                         displayManager.getCurrentBusStopDisplay( ).map(
@@ -77,6 +79,7 @@ public class UserIOManager {
     }
 
     private void onDisplayNextTripEvent() {
+        LOG.info( "Change trip to display" );
         displayManager.displayNextTrip();
     }
 }
