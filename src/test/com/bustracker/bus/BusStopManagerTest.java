@@ -91,7 +91,7 @@ public class BusStopManagerTest {
         assertEquals( 2, busStop.get().getBusStopId() );
 
         busStop =
-                busStopManager.getNextBusStop( Optional.of( 1 ) );
+                busStopManager.getNextBusStop( Optional.of( 2 ) );
         assertTrue( busStop.isPresent() );
         assertEquals( 3, busStop.get().getBusStopId() );
     }
