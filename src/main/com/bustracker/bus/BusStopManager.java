@@ -21,7 +21,7 @@ public class BusStopManager {
     }
 
     public void addBusStopToTrack( String busStopName ) {
-        gtfsManager.getStaticData( ).getBusStopIDs( busStopName ).forEach(
+        gtfsManager.getStaticData().getBusStopIDs( busStopName ).forEach(
                 this::addBusStopIfNotExistent );
     }
 
@@ -56,7 +56,9 @@ public class BusStopManager {
 
     public void removeBusStopToTrack( String busStopName ) {
         gtfsManager.getStaticData( ).getBusStopIDs( busStopName )
-                .forEach( gtfsManager::unsubscribeToBusStopUpdates );
+                .forEach(
+                        id -> gtfsManager.unsubscribeToBusStopUpdates(
+                                Integer.parseInt( id ) ) );
     }
 
     private void onNewTripStopsUpdates(

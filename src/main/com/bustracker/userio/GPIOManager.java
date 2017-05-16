@@ -4,6 +4,7 @@ import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.Pin;
+import com.pi4j.io.gpio.PinEdge;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import org.slf4j.Logger;
@@ -42,11 +43,17 @@ public class GPIOManager {
 
 	private void addListeners() {
 		nextTripGpioPin.addListener(
-				(GpioPinListenerDigital) event ->
-						fireButtonPressedEvent( GPIOEvent.SHOW_NEXT_TRIP ) );
+				(GpioPinListenerDigital) event -> {
+					if( event.getEdge() == PinEdge.RISING ) {
+						fireButtonPressedEvent( GPIOEvent.SHOW_NEXT_TRIP );
+					}
+				} );
 		nextBusStopGpioPin.addListener(
-				(GpioPinListenerDigital) event ->
-						fireButtonPressedEvent( GPIOEvent.SHOW_NEXT_BUS_STOP ) );
+				(GpioPinListenerDigital) event -> {
+					if( event.getEdge() == PinEdge.RISING ) {
+						fireButtonPressedEvent( GPIOEvent.SHOW_NEXT_BUS_STOP );
+					}
+				} );
 	}
 
 	private void fireButtonPressedEvent( GPIOEvent event ) {

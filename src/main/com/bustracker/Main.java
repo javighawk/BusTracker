@@ -2,7 +2,9 @@ package com.bustracker;
 
 import com.bustracker.bus.BusStopManager;
 import com.bustracker.gtfs.GTFSManager;
+import com.bustracker.gtfs.GTFSManagerImpl;
 import com.bustracker.gtfs.GTFSStaticData;
+import com.bustracker.gtfs.GTFSStaticDataImpl;
 import com.bustracker.userio.UserIOManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +31,8 @@ public class Main {
     public static void main( String[] args ){
         LOG.info( "Start main task" );
         executorService = getNewThreadPool();
-        gtfsStaticData = new GTFSStaticData( gtfsPath );
-        gtfsManager = GTFSManager.createAndStart(
+        gtfsStaticData = new GTFSStaticDataImpl( gtfsPath );
+        gtfsManager = GTFSManagerImpl.createAndStart(
                 gtfsURL,
                 gtfsManagerTaskPeriod,
                 gtfsStaticData,
