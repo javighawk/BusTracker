@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
 
@@ -80,6 +81,7 @@ public class BusStopManager {
         int busStopIdInt = busStopId.orElse( -1 );
         return busStops.stream( ).filter(
                 bs -> bs.getBusStopId() > busStopIdInt )
+                .sorted( Comparator.comparingInt( BusStop::getBusStopId ) )
                 .findFirst( );
     }
 }
