@@ -26,12 +26,13 @@
 	</info>
 	<dependencies>
 	
-	<dependency org="com.google.guava" name="guava" rev="21.0" />
-	<dependency org="com.pi4j" name="pi4j-core" rev="1.1" />
-	<dependency org="com.google.transit" name="gtfs-realtime-bindings" rev="0.0.4" />
-	<dependency org="io.reactivex" name="rxjava" rev="1.2.7"/>
-	<dependency org="org.slf4j" name="slf4j-api" rev="1.7.25"/>
-	<dependency org="org.slf4j" name="slf4j-simple" rev="1.7.25"/>
-	<dependency org="junit" name="junit" rev="4.12"/>
+		<dependency org="com.google.guava" name="guava" rev="21.0" />
+		<dependency org="com.pi4j" name="pi4j-core" rev="1.1" />
+		<dependency org="com.google.transit" name="gtfs-realtime-bindings" rev="0.0.4" />
+		<dependency org="io.reactivex" name="rxjava" rev="1.2.7"/>
+		<dependency org="org.slf4j" name="slf4j-api" rev="1.7.25"/>
+		<dependency org="org.slf4j" name="slf4j-simple" rev="1.7.25"/>
+		<dependency org="junit" name="junit" rev="4.12"/>
+		<dependency org="org.mockito" name="mockito-all" rev="1.10.19"/>
 	</dependencies>
 </ivy-module>
