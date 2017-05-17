@@ -6,15 +6,23 @@ import com.bustracker.trip.TripStopUpdate;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
+import rx.subjects.PublishSubject;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class BusStopManager {
 
     private final GTFSManager gtfsManager;
     private Set<BusStop> busStops = Sets.newHashSet( );
+    private final PublishSubject<Void> addedBusStopSubject =
+            PublishSubject.create();
+    private final PublishSubject<Void> removedBusStopSubject =
+            PublishSubject.create();
     private final Logger LOG = LoggerFactory.getLogger( BusStopManager.class );
 
     public BusStopManager( GTFSManager gtfsManager ) {
@@ -47,6 +55,7 @@ public class BusStopManager {
                         onNewTripStopsUpdates(
                                 stopId,
                                 tripStopUpdates ) );
+        addedBusStopSubject.onNext( null );
     }
 
     private Set<TripStop> getAllTripStopFromBusStopId( String stopId ) {
@@ -60,6 +69,7 @@ public class BusStopManager {
                 .forEach(
                         id -> gtfsManager.unsubscribeToBusStopUpdates(
                                 Integer.parseInt( id ) ) );
+        removedBusStopSubject.onNext( null );
     }
 
     private void onNewTripStopsUpdates(
@@ -77,11 +87,25 @@ public class BusStopManager {
         return Optional.empty( );
     }
 
-    public Optional<BusStop> getNextBusStop( Optional<Integer> busStopId ) {
-        int busStopIdInt = busStopId.orElse( -1 );
-        return busStops.stream( ).filter(
-                bs -> bs.getBusStopId() > busStopIdInt )
+    public Optional<BusStop> getNextBusStop( Optional<BusStop> busStopOpt ) {
+        int busStopId =
+                busStopOpt.map( BusStop::getBusStopId ).orElse( -1 );
+        List<BusStop> busStopsList = busStops.stream()
                 .sorted( Comparator.comparingInt( BusStop::getBusStopId ) )
-                .findFirst( );
+                .collect( Collectors.toList() );
+
+        Optional<BusStop> ret = busStopsList.stream()
+                .filter( bs -> bs.getBusStopId() > busStopId )
+                .findFirst();
+
+        return ret.isPresent() ? ret : busStopsList.stream().findFirst();
+    }
+
+    public Observable<Void> getAddedBusStopEvents() {
+        return addedBusStopSubject.asObservable();
+    }
+
+    public Observable<Void> getRemovedBusStopEvents() {
+        return removedBusStopSubject.asObservable();
     }
 }
