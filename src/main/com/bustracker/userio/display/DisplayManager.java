@@ -70,8 +70,8 @@ public class DisplayManager {
         Optional<TripStop> tripStopOpt = busStopToDisplay.getUpcomingBus(
                 currentlyShownTripIndex );
         if( tripStopOpt.isPresent() ) {
-            LOG.info( "Displaying trip..." );
             TripStop tripStop = tripStopOpt.get( );
+            LOG.info( "Displaying trip: {}", tripStop );
             busDisplay.drawOnDisplay(
                     tripStop.getBusLine(),
                     getDurationUntil(
