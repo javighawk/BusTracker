@@ -107,6 +107,7 @@ class BusDisplay extends AdafruitLEDBackPack {
 	void drawBusIndexIndicator( int busIndex ) {
 		LOG.info( "Display trip index" );
 		reg[2] = (byte) ((reg[2] & 0xF3) | busIndex << 2);
+		write();
 	}
 
 	private void clearRealTimeIndicator( ) {
