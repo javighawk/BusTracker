@@ -1,6 +1,5 @@
 package com.bustracker.userio;
 
-import com.bustracker.bus.BusStop;
 import com.bustracker.bus.BusStopManager;
 import com.bustracker.userio.display.DisplayManager;
 import com.pi4j.io.i2c.I2CFactory;
@@ -56,6 +55,20 @@ public class UserIOManager {
 
     private void init() {
         gpioManager.getEvents().subscribe( this::onGpioEvent );
+        busStopManager.getAddedBusStopEvents().subscribe(
+                v -> onAddedBusStopEvent() );
+        busStopManager.getAddedBusStopEvents().subscribe(
+                v -> onRemovedBusStopEvent() );
+    }
+
+    private void onRemovedBusStopEvent() {
+        onDisplayNextBusStopEvent();
+    }
+
+    private void onAddedBusStopEvent() {
+        if( !displayManager.getCurrentBusStopDisplay().isPresent() ) {
+            onDisplayNextBusStopEvent();
+        }
     }
 
     private void onGpioEvent( GPIOManager.GPIOEvent event ) {
@@ -74,8 +87,7 @@ public class UserIOManager {
         LOG.info( "Change bus stop to display" );
         displayManager.updateDisplayWith(
                 busStopManager.getNextBusStop(
-                        displayManager.getCurrentBusStopDisplay( ).map(
-                                BusStop::getBusStopId ) ) );
+                        displayManager.getCurrentBusStopDisplay() ) );
     }
 
     private void onDisplayNextTripEvent() {
