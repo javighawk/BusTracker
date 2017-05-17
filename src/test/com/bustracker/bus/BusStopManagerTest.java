@@ -14,9 +14,9 @@ import java.time.LocalTime;
 import java.util.Optional;
 import java.util.Set;
 
+import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +32,8 @@ public class BusStopManagerTest {
     private final Set<String> busStopIdsString =
             Sets.newHashSet( "1", "2", "3" );
     private final LocalTime now = LocalTime.now();
+    private final String multipleBusStopsName = "multipleBusStops";
+    private final String oneBusStopName = "oneBusStop";
     private final Set<DayOfWeek> dayOfWeeks =
             Sets.newHashSet(
                     DayOfWeek.MONDAY,
@@ -67,8 +69,10 @@ public class BusStopManagerTest {
     @Before
     public void setUp() {
         when( gtfsManager.getStaticData() ).thenReturn( gtfsStaticData );
-        when( gtfsStaticData.getBusStopIDs( anyString() ) )
+        when( gtfsStaticData.getBusStopIDs( multipleBusStopsName ) )
                 .thenReturn( busStopIdsString );
+        when( gtfsStaticData.getBusStopIDs( oneBusStopName ) )
+                .thenReturn( Sets.newHashSet( "1" ) );
         when( gtfsStaticData.getAllScheduledTripStopsFromBusStopId( "1" ) )
                 .thenReturn( Sets.newHashSet( tripStop1, tripStop2 ) );
         when( gtfsStaticData.getAllScheduledTripStopsFromBusStopId( "2" ) )
@@ -79,21 +83,45 @@ public class BusStopManagerTest {
 
     @Test
     public void getNextBusStop( ) throws Exception {
-        busStopManager.addBusStopToTrack( "myBusStopId" );
+        busStopManager.addBusStopToTrack( multipleBusStopsName );
         Optional<BusStop> busStop =
                 busStopManager.getNextBusStop( Optional.empty( ) );
         assertTrue( busStop.isPresent() );
         assertEquals( 1, busStop.get().getBusStopId() );
 
         busStop =
-                busStopManager.getNextBusStop( Optional.of( 1 ) );
+                busStopManager.getNextBusStop( busStop );
         assertTrue( busStop.isPresent() );
         assertEquals( 2, busStop.get().getBusStopId() );
 
         busStop =
-                busStopManager.getNextBusStop( Optional.of( 2 ) );
+                busStopManager.getNextBusStop( busStop );
         assertTrue( busStop.isPresent() );
         assertEquals( 3, busStop.get().getBusStopId() );
+
+        busStop =
+                busStopManager.getNextBusStop( busStop );
+        assertTrue( busStop.isPresent() );
+        assertEquals( 1, busStop.get().getBusStopId() );
     }
 
+    @Test
+    public void getNextBusStopWithoutBusStops( ) throws Exception {
+        Optional<BusStop> busStop =
+                busStopManager.getNextBusStop( Optional.empty() );
+        assertFalse( busStop.isPresent() );
+    }
+
+    @Test
+    public void getNextBusStopWithOneBusStops( ) throws Exception {
+        busStopManager.addBusStopToTrack( oneBusStopName );
+        Optional<BusStop> busStop =
+                busStopManager.getNextBusStop( Optional.empty() );
+        assertTrue( busStop.isPresent() );
+        assertEquals( 1, busStop.get().getBusStopId() );
+
+        busStop = busStopManager.getNextBusStop( busStop );
+        assertTrue( busStop.isPresent() );
+        assertEquals( 1, busStop.get().getBusStopId() );
+    }
 }
