@@ -5,7 +5,6 @@ import com.bustracker.trip.TripStopUpdate;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.subjects.PublishSubject;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -17,8 +16,6 @@ public class BusStop {
 
 	private final int busStopId;
 	private final Set<TripStop> allTripStops;
-	private final PublishSubject<BusStop> tripsUpdateSubject = 
-			PublishSubject.create();
     private final Logger LOG = LoggerFactory.getLogger( BusStop.class );
 	
 	public BusStop( 
