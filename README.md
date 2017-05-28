@@ -10,4 +10,4 @@ The material used is:
 
 To run the program:
 1. Place the GTFS static data on the folder "gtfs/" located on the base directory of the repository.
-- Run Main.java. You will probably need to run it as superuser.
+2. Run  Main.java. You will probably need to run it as superuser.
